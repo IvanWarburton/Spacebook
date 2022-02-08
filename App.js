@@ -1,49 +1,47 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, Image } from 'react-native';
 
 class welcomePage extends Component {
     render() {
         return (
-            <View style={[styles.container, { flexDirection: "column" }]}>
+            <View style={styles.container}>
 
-                <View style={{ flex: 1 }}>
-
+                <View style={styles.container2}>
+                    <Image 
+                    style={styles.logo}
+                    source={require('./assets/Spacebook_Icon.png')} 
+                    />
+                    
                     <Text style={styles.mainTitle}>
                         SpaceBook
                     </Text>
+                </View>
 
                     <Text style={styles.mainText}>
                         Sign up or Sign in to your Spacebook acount.
                     </Text>
 
-                </View>
-
-                <View style={{ flex: 2 }}>
-
                     <TextInput
-                        style={styles.input}
-                        placeholder="Username"
-                    />
+                            style={styles.input}
+                            placeholder="Username"
+                        />
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Password"
-                    />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Password"
+                        />
 
-                    <Button
-                        style={styles.button}
-                        title="Sign In"
-                        padding="10"
-                        onPress={() => Alert.alert('Signed in')}
-                    />
-                    <View style={styles.space} />
-                    <Button
-                        title="Sign Up"
-                        padding="10"
-                        onPress={() => Alert.alert('Signing Up')}
-                    />
-
-                </View>
+                        <Button
+                            style={styles.button}
+                            title="Sign In"
+                            padding="10"
+                        />
+                        
+                        <Button
+                            style={styles.button}
+                            title="Sign Up"
+                            padding="10"
+                        />
 
             </View>
 
@@ -56,14 +54,19 @@ const styles = StyleSheet.create({
     container:
     {
         flex: 1,
-        padding: 20
+        flexDirection: "column",
+        justifyContent: 'space-evenly'
+    },
+    container2:
+    {
+        flexDirection: "row",
+        justifyContent: 'space-evenly'
     },
     mainTitle:
     {
         fontSize: 40,
         fontWeight: 'bold',
-        textAlign: 'center',
-        padding: 40
+        textAlign: 'center'
     },
     mainText:
     {
@@ -84,6 +87,12 @@ const styles = StyleSheet.create({
     {
         width: 20,
         height: 20
+    },
+    logo:
+    {
+        width: 100,
+        height: 100,
+        resizeMode: 'contain'
     }
 });
 
