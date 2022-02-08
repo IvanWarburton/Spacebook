@@ -19,7 +19,7 @@ class signUp extends Component {
                 </View>
 
                     <Text style={styles.mainText}>
-                        Sign up or Sign in to your Spacebook acount.
+                        Sign up to your Spacebook acount today.
                     </Text>
 
                     <TextInput
