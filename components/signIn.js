@@ -1,14 +1,63 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, Button, Image } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class signIn extends Component {
+class SignIn extends Component {
+
+    constructor(props){
+        super(props);
+
+        this.state = 
+        {
+            email: "",
+            password: ""
+        }
+    }
+
+    login = async () => 
+    {
+        return fetch("http://localhost:3333/api/1.0.0/login", 
+        {
+            method: 'post',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(this.state)
+        }
+        )
+
+        .then((response) =>
+        {
+            if(response.status === 200){
+                return response.json()
+            }else if(response.status === 400){
+                throw 'Invalid email or password';
+            }else{
+                throw 'Something went wrong';
+            }
+        })
+
+        .then(async (responseJson) => 
+        {
+            console.log(responseJson);
+            await AsyncStorage.setItem('@session_token', responseJson.token);
+            console.log("Logged In")
+        })
+
+        .catch((error) => 
+        {
+            console.log(error);
+        })
+    }
+
+
     render() {
         return (
             <View style={styles.container}>
 
                 <View style={styles.container2}>
-                    
-                    {/*<Image 
+
+                    {/*
+                    <Image 
                     style={styles.logo}
                     source={require('./assets/Spacebook_Icon.png')} 
                     />
@@ -17,7 +66,7 @@ class signIn extends Component {
                     <Text style={styles.mainTitle}>
                         SpaceBook
                     </Text>
-                </View>
+                    </View>
 
                     <Text style={styles.mainText}>
                         Sign up or Sign in to your Spacebook acount.
@@ -26,27 +75,31 @@ class signIn extends Component {
                     <TextInput
                             style={styles.input}
                             placeholder="Email"
+                            onChangeText={(email) => this.setState({email})}
+                            value={this.state.email}
                         />
 
                         <TextInput
                             style={styles.input}
                             placeholder="Password"
+                            onChangeText={(password) => this.setState({password})}
+                            value={this.state.password}
+                            secureTextEntry
                         />
 
                         <Button
                             style={styles.button}
                             title="Sign In"
-                            padding="10"
+                            onPress={() => this.login()}
                         />
                         
                         <Button
                             style={styles.button}
                             title="Sign Up"
-                            padding="10"
+                            onPress={() => this.props.navigation.navigate("Sign Up")}
                         />
 
             </View>
-
 
         )
     }
@@ -98,4 +151,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default signIn;
+export default SignIn;

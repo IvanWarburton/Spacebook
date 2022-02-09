@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, Button, TextInput, Image } from 'react-native';
 
-class signUp extends Component {
+class SignUp extends Component {
     render() {
         return (
             <View style={styles.container}>
@@ -101,4 +101,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default signUp;
+export default SignUp;

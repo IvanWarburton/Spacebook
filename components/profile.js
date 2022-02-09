@@ -1,7 +1,34 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-class profile extends Component {
+class Profile extends Component {
+
+    signOut = async () =>
+    {
+        let token = await AsyncStorage.getItem('@session_token');
+        await AsyncStorage.removeItem('@session_token');
+        return fetch("http://localhost:3333/api/1.0.0/logout", {
+            method: 'post',
+            headers: {
+                "X-Authorization": token
+            }
+        })
+        .then((response) => {
+            if(response.status === 200){
+                console.log("Logged Out");
+            }else if(response.status === 401){
+                console.log("Logged Out");
+            }else{
+                throw 'Something went wrong';
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            ToastAndroid.show(error, ToastAndroid.SHORT);
+        })
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -16,6 +43,12 @@ class profile extends Component {
                     <Text style={styles.mainText}>
                         Profile Page
                     </Text>
+
+                    <Button
+                        style={styles.button}
+                        title="Sign Out"
+                        onPress={() => this.signOut()}
+                    />
             </View>
         )
     }
@@ -47,4 +80,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default profile;
+export default Profile;

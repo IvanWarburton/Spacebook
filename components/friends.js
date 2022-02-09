@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-class friends extends Component {
+class Friends extends Component {
     render() {
         return (
             <View style={styles.container}>
@@ -47,4 +47,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default friends;
+export default Friends;
