@@ -4,10 +4,54 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Profile extends Component {
 
+    constructor(props){
+        super(props);
+    
+        this.state = {
+          isLoading: true,
+          listData: []
+        }
+    }
+
+    componentDidMount() {
+        this.getData();
+      }
+    
+    
+      getData = async () => {
+        const SessionToken = await AsyncStorage.getItem('@session_token');
+        const UserId = await AsyncStorage.getItem('@user_id');
+        return fetch("http://localhost:3333/api/1.0.0/user/" + UserId, {
+              'headers': {
+                'X-Authorization':  SessionToken
+              }
+            })
+            .then((response) => {
+                if(response.status === 200){
+                    return response.json()
+                }else if(response.status === 401){
+                    console.log("Unauthorised");
+                }else{
+                    throw 'Something went wrong';
+                }
+            })
+            .then((responseJson) => {
+              this.setState({
+                isLoading: false,
+                listData: responseJson
+              })
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+      }
+    
+
     signOut = async () =>
     {
         let token = await AsyncStorage.getItem('@session_token');
         await AsyncStorage.removeItem('@session_token');
+        await AsyncStorage.removeItem('@user_id');
         return fetch("http://localhost:3333/api/1.0.0/logout", {
             method: 'post',
             headers: {
@@ -29,19 +73,50 @@ class Profile extends Component {
         })
     }
 
-    render() {
-        return (
-            <View style={styles.container}>
 
-                <View style={styles.container2}>
-                    
+
+    render() {
+        if (this.state.isLoading)
+        {
+            return (
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text>Loading..</Text>
+              </View>
+            );
+        }
+        else
+        {
+            return (
+                <View style={styles.container}>
+
+
                     <Text style={styles.mainTitle}>
-                        SpaceBook Profile
+                        Picture
                     </Text>
-                </View>
+
+                    <Text style={styles.mainTitle}>
+                        {this.state.listData.first_name} {this.state.listData.last_name}
+                    </Text>
+
 
                     <Text style={styles.mainText}>
-                        Profile Page
+                        Email: {this.state.listData.email}
+                    </Text>
+                    
+                    <Button
+                        style={styles.button}
+                        title={"Friends: "+ this.state.listData.friend_count}
+                        onPress={() => this.props.navigation.navigate("Friends")}
+                    />
+
+                    <Text style={styles.mainText}>
+                        Posts: .....
                     </Text>
 
                     <Button
@@ -49,8 +124,9 @@ class Profile extends Component {
                         title="Sign Out"
                         onPress={() => this.signOut()}
                     />
-            </View>
-        )
+                </View>
+            )
+        }
     }
 }
 

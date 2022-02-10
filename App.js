@@ -37,8 +37,6 @@ class App extends Component{
     Login = async () =>
     {
         const LoggedInToken = await AsyncStorage.getItem('@session_token'); 
-        
-        console.log(LoggedInToken);
 
         if(LoggedInToken == null)
         {
