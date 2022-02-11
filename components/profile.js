@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Profile extends Component {
@@ -9,6 +9,7 @@ class Profile extends Component {
     
         this.state = {
           isLoading: true,
+          isEditing: false,
           listData: []
         }
     }
@@ -61,8 +62,10 @@ class Profile extends Component {
         .then((response) => {
             if(response.status === 200){
                 console.log("Logged Out");
+                window.location.reload(false);
             }else if(response.status === 401){
                 console.log("Logged Out");
+                window.location.reload(false);
             }else{
                 throw 'Something went wrong';
             }
@@ -70,6 +73,39 @@ class Profile extends Component {
         .catch((error) => {
             console.log(error);
             ToastAndroid.show(error, ToastAndroid.SHORT);
+        })
+    }
+
+    editInfo = async () =>
+    {
+        
+        let userID = await AsyncStorage.getItem('@user_id');
+        let token = await AsyncStorage.getItem('@session_token');
+        return fetch("http://localhost:3333/api/1.0.0/user/" + userID, 
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-Authorization": token
+            },
+            body: JSON.stringify(this.state.listData)
+        }
+        )
+
+        .then((response) =>
+        {
+            if(response.status === 200){
+                window.location.reload(false);
+            }else if(response.status === 400){
+                throw 'Invalid email or password';
+            }else{
+                throw 'Something went wrong';
+            }
+        })
+
+        .catch((error) => 
+        {
+            console.log(error);
         })
     }
 
@@ -88,6 +124,71 @@ class Profile extends Component {
                 }}>
                 <Text>Loading..</Text>
               </View>
+            );
+        }
+        else if(this.state.isEditing)
+        {
+            return (
+                <View style={styles.container}>
+
+                    <Text style={styles.mainTitle}>
+                        Edit My Information
+                    </Text>
+
+                    <Text style={styles.mainText}>
+                        First Name:
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder={this.state.listData.first_name}
+                        onChangeText={(first_name) => this.state.listData["first_name"] = first_name}
+                    />
+
+                    <Text style={styles.mainText}>
+                        Last Name: 
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder={this.state.listData.last_name}
+                        onChangeText={(last_name) => this.state.listData["last_name"] = last_name}
+                    />
+
+
+                    <Text style={styles.mainText}>
+                        Email:
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder={this.state.listData.email}
+                        onChangeText={(email) => this.state.listData["email"] = email}
+                    />
+
+                    <Text style={styles.mainText}>
+                        Password:
+                    </Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder= "Enter A New Password"
+                        onChangeText={(password) => this.state.listData["password"] = password}
+                    />
+
+                    <View style={styles.container2}>
+                        <Button
+                            style={styles.button}
+                            title="Update"
+                            onPress={() => this.editInfo()}
+                        />
+                        <Button
+                            style={styles.button}
+                            title="Cancel"
+                            onPress={() => this.setState({isEditing: false})}
+                        />
+                    </View>
+                </View>
             );
         }
         else
@@ -113,6 +214,12 @@ class Profile extends Component {
                         style={styles.button}
                         title={"Friends: "+ this.state.listData.friend_count}
                         onPress={() => this.props.navigation.navigate("Friends")}
+                    />
+
+                    <Button
+                        style={styles.button}
+                        title="Edit Profile"
+                        onPress={() => this.setState({isEditing: true})}
                     />
 
                     <Text style={styles.mainText}>
@@ -153,6 +260,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'center'
+    },
+    input:
+    {
+        margin: 40,
+        padding: 10
     }
 });
 

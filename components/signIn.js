@@ -41,6 +41,7 @@ class SignIn extends Component {
             console.log(responseJson);
             await AsyncStorage.setItem('@session_token', responseJson.token);
             await AsyncStorage.setItem('@user_id', responseJson.id);
+            window.location.reload(false);
             console.log("Logged In")
         })
 
@@ -74,31 +75,31 @@ class SignIn extends Component {
                     </Text>
 
                     <TextInput
-                            style={styles.input}
-                            placeholder="Email"
-                            onChangeText={(email) => this.setState({email})}
-                            value={this.state.email}
-                        />
+                        style={styles.input}
+                        placeholder="Email"
+                        onChangeText={(email) => this.setState({email})}
+                        value={this.state.email}
+                    />
 
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Password"
-                            onChangeText={(password) => this.setState({password})}
-                            value={this.state.password}
-                            secureTextEntry
-                        />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                        onChangeText={(password) => this.setState({password})}
+                        value={this.state.password}
+                        secureTextEntry
+                    />
 
-                        <Button
-                            style={styles.button}
-                            title="Sign In"
-                            onPress={() => this.login()}
-                        />
-                        
-                        <Button
-                            style={styles.button}
-                            title="Sign Up"
-                            onPress={() => this.props.navigation.navigate("Sign Up")}
-                        />
+                    <Button
+                        style={styles.button}
+                        title="Sign In"
+                        onPress={() => this.login()}
+                    />
+                    
+                    <Button
+                        style={styles.button}
+                        title="Sign Up"
+                        onPress={() => this.props.navigation.navigate("Sign Up")}
+                    />
 
             </View>
 
