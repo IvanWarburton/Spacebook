@@ -138,7 +138,8 @@ const styles = StyleSheet.create({
     {
         flex: 1,
         flexDirection: "column",
-        justifyContent: 'space-evenly'
+        justifyContent: 'space-evenly',
+        alignItems: 'center'
     },
     container2:
     {
@@ -148,14 +149,12 @@ const styles = StyleSheet.create({
     mainTitle:
     {
         fontSize: 40,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
     },
     mainText:
     {
         fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
     },
     button:
     {
@@ -164,7 +163,8 @@ const styles = StyleSheet.create({
     input:
     {
         margin: 40,
-        padding: 10
+        padding: 10,
+        width: '70%'
     },
     space:
     {

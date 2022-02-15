@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Camera } from 'expo-camera';
 
 class Profile extends Component {
 
@@ -9,13 +10,79 @@ class Profile extends Component {
     
         this.state = {
           isLoading: true,
+          isLoadingPhoto: true,
+          isLoadingData: true,
           isEditing: false,
-          listData: []
+          isEditingImage: false,
+          photo: null,
+          listData: [],
+          hasPermission: null,
+          type: Camera.Constants.Type.back
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.getData();
+        this.getProfilePicture();
+        const {status} = await Camera.requestCameraPermissionsAsync();
+        this.setState({hasPermission: status === 'granted'})
+      }
+
+      sendToServer = async (data) =>
+        {
+            const SessionToken = await AsyncStorage.getItem('@session_token');
+            const UserId = await AsyncStorage.getItem('@user_id');
+
+            let res = await fetch(data.base64);
+            let blob = await res.blob();
+
+            return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/photo", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "image/png",
+                    "X-Authorization": SessionToken
+                },
+                body: blob
+            })
+            .then((response) => {
+                console.log("Picture added", response);
+            })
+            .catch((err) => {
+                console.log(err);
+            }) 
+        }
+
+      takePicture = async () => 
+      {
+          if(this.camera)
+          {
+              const options = {
+                  quality: 0.5,
+                  base64: true,
+                  onPictureSaved: (data) => this.SendToServer(data)
+              };
+              await this.camera.takePictureAsync(options);
+          }
+      }
+
+      getProfilePicture = async () => 
+      {
+        const SessionToken = await AsyncStorage.getItem('@session_token');
+        const UserId = await AsyncStorage.getItem('@user_id');
+          fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/photo",
+          { headers:{'X-Authorization':  SessionToken} } )
+          .then((res) => {return res.blob();})
+          .then((resBlob) => 
+          {
+              let data = URL.createObjectURL(resBlob);
+              this.setState({
+                  photo: data,
+                  isLoadingPhoto: false
+              })
+          })
+          .catch((err) => {
+              console.log("error", err)
+          });
       }
     
     
@@ -38,7 +105,7 @@ class Profile extends Component {
             })
             .then((responseJson) => {
               this.setState({
-                isLoading: false,
+                isLoadingData: false,
                 listData: responseJson
               })
             })
@@ -112,7 +179,7 @@ class Profile extends Component {
 
 
     render() {
-        if (this.state.isLoading)
+        if (this.state.isLoadingPhoto && this.state.isLoadingData)
         {
             return (
               <View
@@ -191,15 +258,59 @@ class Profile extends Component {
                 </View>
             );
         }
+        else if(this.state.isEditingImage)
+        {
+            if(this.state.hasPermission){
+                return(
+                  <View style={styles.camContainer}>
+                    <Camera 
+                      style={styles.camera} 
+                      type={this.state.type}
+                      ref={ref => this.camera = ref}
+                    >
+
+                    <View style={styles.camButtonContainer}>
+                        <TouchableOpacity
+                            style={styles.camButton}
+                            onPress={() => {
+                            this.takePicture();
+                            }}>
+                            <Text style={styles.camText}> Take Photo </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    </Camera>
+                    
+                    
+
+                  </View>
+                );
+              }else{
+                return(
+                    <view>
+                        <Text>No access to camera</Text>
+
+                        <Button
+                            style={styles.button}
+                            title="Cancel"
+                            onPress={() => this.setState({isEditingImage: false})}
+                        />
+                    </view>
+                );
+              }
+        }
         else
         {
             return (
                 <View style={styles.container}>
 
-
-                    <Text style={styles.mainTitle}>
-                        Picture
-                    </Text>
+                    <TouchableOpacity onPress={() => this.setState({isEditingImage: true})}>
+                        <Image 
+                            style={styles.logo}
+                            source={{uri: this.state.photo}} 
+                        />
+                    </TouchableOpacity>
+                    
 
                     <Text style={styles.mainTitle}>
                         {this.state.listData.first_name} {this.state.listData.last_name}
@@ -242,7 +353,8 @@ const styles = StyleSheet.create({
     {
         flex: 1,
         flexDirection: "column",
-        justifyContent: 'space-evenly'
+        justifyContent: 'space-evenly',
+        alignItems: 'center'
     },
     container2:
     {
@@ -252,20 +364,49 @@ const styles = StyleSheet.create({
     mainTitle:
     {
         fontSize: 40,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
     },
     mainText:
     {
         fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
+    },
+    button:
+    {
+        padding: 10
     },
     input:
     {
         margin: 40,
-        padding: 10
-    }
+        padding: 10,
+        width: '70%'
+    },
+    logo:
+    {
+        width: 200,
+        height: 200
+    },
+    camContainer: {
+        flex: 1,
+      },
+      camera: {
+        flex: 1,
+      },
+      camButtonContainer: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        flexDirection: 'row',
+        margin: 20,
+      },
+      camButton: {
+        flex: 0.1,
+        alignSelf: 'flex-end',
+        alignItems: 'center',
+      },
+      camText: {
+        fontSize: 18,
+        color: 'white',
+      },
 });
 
 export default Profile;

@@ -58,48 +58,47 @@ class SignIn extends Component {
 
                 <View style={styles.container2}>
 
-                    {/*
                     <Image 
-                    style={styles.logo}
-                    source={require('./assets/Spacebook_Icon.png')} 
+                        style={styles.logo}
+                        source={require('../assets/Spacebook_Icon.png')} 
                     />
-                    */}
                     
                     <Text style={styles.mainTitle}>
                         SpaceBook
                     </Text>
-                    </View>
 
-                    <Text style={styles.mainText}>
-                        Sign up or Sign in to your Spacebook acount.
-                    </Text>
+                </View>
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email"
-                        onChangeText={(email) => this.setState({email})}
-                        value={this.state.email}
-                    />
+                <Text style={styles.mainText}>
+                    Sign up or Sign in to your Spacebook acount.
+                </Text>
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Password"
-                        onChangeText={(password) => this.setState({password})}
-                        value={this.state.password}
-                        secureTextEntry
-                    />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    onChangeText={(email) => this.setState({email})}
+                    value={this.state.email}
+                />
 
-                    <Button
-                        style={styles.button}
-                        title="Sign In"
-                        onPress={() => this.login()}
-                    />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    onChangeText={(password) => this.setState({password})}
+                    value={this.state.password}
+                    secureTextEntry
+                />
+
+                <Button
+                    style={styles.button}
+                    title="Sign In"
+                    onPress={() => this.login()}
+                />
                     
-                    <Button
-                        style={styles.button}
-                        title="Sign Up"
-                        onPress={() => this.props.navigation.navigate("Sign Up")}
-                    />
+                <Button
+                    style={styles.button}
+                    title="Sign Up"
+                    onPress={() => this.props.navigation.navigate("Sign Up")}
+                />
 
             </View>
 
@@ -112,7 +111,8 @@ const styles = StyleSheet.create({
     {
         flex: 1,
         flexDirection: "column",
-        justifyContent: 'space-evenly'
+        justifyContent: 'space-evenly',
+        alignItems: 'center'
     },
     container2:
     {
@@ -122,14 +122,12 @@ const styles = StyleSheet.create({
     mainTitle:
     {
         fontSize: 40,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
     },
     mainText:
     {
         fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center'
+        fontWeight: 'bold'
     },
     button:
     {
@@ -138,7 +136,8 @@ const styles = StyleSheet.create({
     input:
     {
         margin: 40,
-        padding: 10
+        padding: 10,
+        width: '70%'
     },
     space:
     {
