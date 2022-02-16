@@ -24,8 +24,8 @@ class Profile extends Component {
     async componentDidMount() {
         this.getData();
         this.getProfilePicture();
-        const {status} = await Camera.requestCameraPermissionsAsync();
-        this.setState({hasPermission: status === 'granted'})
+        //const {status} = await Camera.requestCameraPermissionsAsync();
+        //this.setState({hasPermission: status === 'granted'})
       }
 
       sendToServer = async (data) =>
@@ -263,11 +263,12 @@ class Profile extends Component {
             if(this.state.hasPermission){
                 return(
                   <View style={styles.camContainer}>
+                      
                     <Camera 
                       style={styles.camera} 
                       type={this.state.type}
                       ref={ref => this.camera = ref}
-                    >
+                    />
 
                     <View style={styles.camButtonContainer}>
                         <TouchableOpacity
@@ -279,15 +280,20 @@ class Profile extends Component {
                         </TouchableOpacity>
                     </View>
 
-                    </Camera>
                     
+                    
+                    <Button
+                            style={styles.button}
+                            title="Cancel"
+                            onPress={() => this.setState({isEditingImage: false})}
+                        />
                     
 
                   </View>
                 );
               }else{
                 return(
-                    <view>
+                    <View>
                         <Text>No access to camera</Text>
 
                         <Button
@@ -295,7 +301,7 @@ class Profile extends Component {
                             title="Cancel"
                             onPress={() => this.setState({isEditingImage: false})}
                         />
-                    </view>
+                    </View>
                 );
               }
         }
@@ -388,9 +394,14 @@ const styles = StyleSheet.create({
     },
     camContainer: {
         flex: 1,
+        flexDirection: "column",
+        justifyContent: 'space-evenly',
+        alignItems: 'center'
       },
       camera: {
-        flex: 1,
+        margin: 40,
+        width: "100%",
+        height: "100%"
       },
       camButtonContainer: {
         flex: 1,
