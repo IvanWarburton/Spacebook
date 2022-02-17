@@ -11,7 +11,7 @@ class Friends extends Component {
         this.state = {
             isLoadingData: true,
             friendList:[],
-            searchedFriends: [],
+            searchedFriends:[],
             search: ""
         }
     }
@@ -85,7 +85,8 @@ class Friends extends Component {
 
         for(let i = 0; i<this.state.searchedFriends.length; i++)
         {  
-            searchResults.push(<View style={styles.container2}>
+            searchResults.push(
+            <View style={styles.container2}>
                 <Text>
                     {this.state.searchedFriends[i].user_givenname + " " + this.state.searchedFriends[i].user_familyname}
                 </Text>
@@ -98,7 +99,7 @@ class Friends extends Component {
                     padding="10"
                     onPress={() => this.addFriend(this.state.searchedFriends[i].user_id)}
                 />
-                </View>
+            </View>
             );
               
         }
@@ -107,18 +108,41 @@ class Friends extends Component {
  
     }
 
+    friendsResultList = () =>
+    {
+        let Friends = [];
+
+        for(let i = 0; i<this.state.friendList.length; i++)
+        {  
+            searchResults.push(
+            <TouchableOpacity style={styles.container2} onPress={onPress/* view friends profile */}>
+                <Text>
+                    {this.state.friendList[i].first_name + " " + this.state.searchedFriends[i].last_name}
+                </Text>
+                <Text>
+                    {" " + this.state.friendList[i].email}
+                </Text>
+            </TouchableOpacity>
+            );
+              
+        }
+
+        return Friends;
+ 
+    }
+
     async addFriend(firendID)
     {
         const SessionToken = await AsyncStorage.getItem('@session_token');
 
-        return fetch("http://localhost:3333/api/1.0.0/user" + firendID + "/friends", {
+        return fetch("http://localhost:3333/api/1.0.0/user/" + firendID + "/friends", {
             method: 'post',
             headers: {
                 'X-Authorization':  SessionToken
               }
             })
             .then((response) => {
-                if(response.status === 200){
+                if(response.status === 201){
                     return "Friend Added"
                 }else if(response.status === 401){
                     console.log("Unauthorised");
@@ -135,45 +159,7 @@ class Friends extends Component {
             })
     }
 
-    friendCheck = () => {
-
-        if(this.state.friendList.length > 0)
-        {
-            return(
-            <TouchableOpacity>
-                <Text style={styles.mainText}>
-                    David
-                </Text>
-            </TouchableOpacity>
-            );
-        }
-        else
-        {
-            
-            return(
-            <View style={styles.container}>
-                <Text style={styles.mainText}>
-                    It doesnt look like you have any friends at this time.
-                </Text>
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="Search for friends"
-                    onChangeText={(search) => this.setState({search})}
-                    value={this.state.search}
-                />
-                        
-                <Button
-                    style={styles.button}
-                    title="Search"
-                    padding="10"
-                    onPress={() => this.searchForFriends()}
-                />
-                
-            </View>
-            );
-        }
-    }
+    
     
     render() {
         if (this.state.isLoadingData)
@@ -190,7 +176,7 @@ class Friends extends Component {
               </View>
             );
         }
-        else if(this.state.searchedFriends.length > 0)
+        else if(this.state.friendList.length > 0)
         {
             return (
                 <View style={styles.container}>
@@ -202,7 +188,9 @@ class Friends extends Component {
                         </Text>
                     </View>
                     
-                    <this.friendCheck/>
+                    <ScrollView>
+                        <this.friendsResultList/>
+                    </ScrollView>
 
                     <ScrollView>
                         <this.searchResults/>
@@ -223,8 +211,28 @@ class Friends extends Component {
                     </Text>
                 </View>
                 
+                <Text style={styles.mainText}>
+                    It doesnt look like you have any friends at this time.
+                </Text>
+
+                <TextInput
+                    style={styles.input}
+                    placeholder="Search for friends"
+                    onChangeText={(search) => this.setState({search})}
+                    value={this.state.search}
+                />
+                        
+                <Button
+                    style={styles.button}
+                    title="Search"
+                    padding="10"
+                    onPress={() => this.searchForFriends()}
+                />
+
+                    <ScrollView>
+                        <this.searchResults/>
+                    </ScrollView>
                 
-                <this.friendCheck/>
 
             </View>
         );
@@ -240,17 +248,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-evenly',
         alignItems: 'center'
     },
-    subContainer:
-    {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
-    },
     container2:
     {
         flexDirection: "row",
-        justifyContent: 'space-evenly'
+        justifyContent: 'space-evenly',
+        margin: 20
     },
     mainTitle:
     {
@@ -262,7 +264,8 @@ const styles = StyleSheet.create({
     {
         fontSize: 20,
         fontWeight: 'bold',
-        textAlign: 'center'
+        textAlign: 'center',
+        margin: 40
     },
     button:
     {
