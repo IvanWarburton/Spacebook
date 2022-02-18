@@ -24,8 +24,8 @@ class Profile extends Component {
     async componentDidMount() {
         this.getData();
         this.getProfilePicture();
-        //const {status} = await Camera.requestCameraPermissionsAsync();
-        //this.setState({hasPermission: status === 'granted'})
+        const {status} = await Camera.requestCameraPermissionsAsync();
+        this.setState({hasPermission: status === 'granted'})
       }
 
       sendToServer = async (data) =>
@@ -59,7 +59,7 @@ class Profile extends Component {
               const options = {
                   quality: 0.5,
                   base64: true,
-                  onPictureSaved: (data) => this.SendToServer(data)
+                  onPictureSaved: (data) => this.sendToServer(data)
               };
               await this.camera.takePictureAsync(options);
           }
@@ -268,7 +268,7 @@ class Profile extends Component {
                       style={styles.camera} 
                       type={this.state.type}
                       ref={ref => this.camera = ref}
-                    />
+                    >
 
                     <View style={styles.camButtonContainer}>
                         <TouchableOpacity
@@ -279,13 +279,13 @@ class Profile extends Component {
                             <Text style={styles.camText}> Take Photo </Text>
                         </TouchableOpacity>
                     </View>
-
+                    </Camera>
                     
                     
                     <Button
                             style={styles.button}
                             title="Cancel"
-                            onPress={() => this.setState({isEditingImage: false})}
+                            onPress={() => this.setState({isEditingImage: false}, )}
                         />
                     
 
