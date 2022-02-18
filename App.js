@@ -32,9 +32,6 @@ class App extends Component{
         this.Login();
     }
     
-    componentWillUnmount() {
-        this.unsubscribe();
-    }
 
     Login = async () =>
     {

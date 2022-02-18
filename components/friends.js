@@ -81,6 +81,29 @@ class Friends extends Component {
 
     searchResults = () =>
     {
+        let UserId = AsyncStorage.getItem('@user_id');
+
+        for(let i = 0; i<this.state.searchedFriends.length; i++)
+        { 
+            console.log(UserId);
+            console.log(this.state.searchedFriends[i].user_id);
+            if(this.state.searchedFriends[i].user_id == UserId)
+            {
+                this.state.searchedFriends.splice(i,1)
+            } 
+        }
+
+        for(let i = 0; i<this.state.searchedFriends.length; i++)
+        { 
+            for(let j = 0; j<this.state.friendList.length; j++)
+            {
+                if (this.state.searchedFriends[i].user_id == this.state.friendList[j].user_id)
+                {
+                    this.state.searchedFriends.splice(i,1)
+                }
+            }
+        }
+
         let searchResults = [];
 
         for(let i = 0; i<this.state.searchedFriends.length; i++)
@@ -114,13 +137,13 @@ class Friends extends Component {
 
         for(let i = 0; i<this.state.friendList.length; i++)
         {  
-            searchResults.push(
-            <TouchableOpacity style={styles.container2} onPress={onPress/* view friends profile */}>
+            Friends.push(
+            <TouchableOpacity style={styles.container2} /*onpress view friends profile */>
                 <Text>
-                    {this.state.friendList[i].first_name + " " + this.state.searchedFriends[i].last_name}
+                    {this.state.friendList[i].user_givenname + " " + this.state.friendList[i].user_familyname}
                 </Text>
                 <Text>
-                    {" " + this.state.friendList[i].email}
+                    {" " + this.state.friendList[i].user_email}
                 </Text>
             </TouchableOpacity>
             );
@@ -142,7 +165,9 @@ class Friends extends Component {
               }
             })
             .then((response) => {
-                if(response.status === 201){
+                if(response.status === 200){
+                    return "Friend Added"
+                }else if(response.status === 201){
                     return "Friend Added"
                 }else if(response.status === 401){
                     console.log("Unauthorised");
@@ -189,8 +214,22 @@ class Friends extends Component {
                     </View>
                     
                     <ScrollView>
-                        <this.friendsResultList/>
+                        {this.friendsResultList(this)}
                     </ScrollView>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Search for friends"
+                        onChangeText={(search) => this.setState({search})}
+                        value={this.state.search}
+                    />
+                        
+                    <Button
+                        style={styles.button}
+                        title="Search"
+                        padding="10"
+                        onPress={() => this.searchForFriends()}
+                    />
 
                     <ScrollView>
                         <this.searchResults/>

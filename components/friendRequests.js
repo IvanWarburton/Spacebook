@@ -57,7 +57,9 @@ class FriendRequests extends Component {
               }
             })
             .then((response) => {
-                if(response.status === 201){
+                if(response.status === 200){
+                    return "Request Accepted"
+                }else if(response.status === 201){
                     return "Request Accepted"
                 }else if(response.status === 401){
                     console.log("Unauthorised");
@@ -85,8 +87,10 @@ class FriendRequests extends Component {
               }
             })
             .then((response) => {
-                if(response.status === 201){
-                    return "Request Rejected"
+                if(response.status === 200){
+                    return "Request Accepted"
+                }else if(response.status === 201){
+                    return "Request Accepted"
                 }else if(response.status === 401){
                     console.log("Unauthorised");
                 }else if(response.status === 403){
