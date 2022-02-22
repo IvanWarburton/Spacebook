@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SignInScreen from './components/SignIn';
 import SignUpScreen from './components/SignUp';
 import ProfileScreen from './components/Profile';
+import EditProfile from './components/EditProfile';
 import FriendsScreen from './components/Friends';
 import FriendRequestScreen from './components/FriendRequests';
 
@@ -63,6 +64,7 @@ class App extends Component{
                 <NavigationContainer>
                     <Drawer.Navigator initialRouteName="Profile">
                         <Drawer.Screen name="Profile" component={ProfileScreen} />
+                        <Drawer.Screen name="Edit Profile" component={EditProfile} />
                         <Drawer.Screen name="Friends" component={FriendsScreen} />
                         <Drawer.Screen name="Friend Requests" component={FriendRequestScreen} />
                     </Drawer.Navigator>

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Camera } from 'expo-camera';
 
 class Profile extends Component {
 
@@ -10,59 +9,13 @@ class Profile extends Component {
     
         this.state = {
           isLoading: true,
-          isLoadingPhoto: true,
-          isLoadingData: true,
-          isEditing: false,
-          isEditingImage: false,
           photo: null,
-          listData: [],
-          hasPermission: null,
-          type: Camera.Constants.Type.back
+          listData: []
         }
     }
 
     async componentDidMount() {
         this.getData();
-        this.getProfilePicture();
-        const {status} = await Camera.requestCameraPermissionsAsync();
-        this.setState({hasPermission: status === 'granted'})
-      }
-
-      sendToServer = async (data) =>
-        {
-            const SessionToken = await AsyncStorage.getItem('@session_token');
-            const UserId = await AsyncStorage.getItem('@user_id');
-
-            let res = await fetch(data.base64);
-            let blob = await res.blob();
-
-            return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/photo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "image/png",
-                    "X-Authorization": SessionToken
-                },
-                body: blob
-            })
-            .then((response) => {
-                console.log("Picture added", response);
-            })
-            .catch((err) => {
-                console.log(err);
-            }) 
-        }
-
-      takePicture = async () => 
-      {
-          if(this.camera)
-          {
-              const options = {
-                  quality: 0.5,
-                  base64: true,
-                  onPictureSaved: (data) => this.sendToServer(data)
-              };
-              await this.camera.takePictureAsync(options);
-          }
       }
 
       getProfilePicture = async () => 
@@ -77,7 +30,7 @@ class Profile extends Component {
               let data = URL.createObjectURL(resBlob);
               this.setState({
                   photo: data,
-                  isLoadingPhoto: false
+                  isLoading: false
               })
           })
           .catch((err) => {
@@ -104,10 +57,8 @@ class Profile extends Component {
                 }
             })
             .then((responseJson) => {
-              this.setState({
-                isLoadingData: false,
-                listData: responseJson
-              })
+                this.getProfilePicture();
+                this.setState({listData: responseJson})
             })
             .catch((error) => {
                 console.log(error);
@@ -143,43 +94,8 @@ class Profile extends Component {
         })
     }
 
-    editInfo = async () =>
-    {
-        
-        let userID = await AsyncStorage.getItem('@user_id');
-        let token = await AsyncStorage.getItem('@session_token');
-        return fetch("http://localhost:3333/api/1.0.0/user/" + userID, 
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                "X-Authorization": token
-            },
-            body: JSON.stringify(this.state.listData)
-        }
-        )
-
-        .then((response) =>
-        {
-            if(response.status === 200){
-                window.location.reload(false);
-            }else if(response.status === 400){
-                throw 'Invalid email or password';
-            }else{
-                throw 'Something went wrong';
-            }
-        })
-
-        .catch((error) => 
-        {
-            console.log(error);
-        })
-    }
-
-
-
     render() {
-        if (this.state.isLoadingPhoto && this.state.isLoadingData)
+        if (this.state.isLoading)
         {
             return (
               <View
@@ -193,131 +109,16 @@ class Profile extends Component {
               </View>
             );
         }
-        else if(this.state.isEditing)
-        {
-            return (
-                <View style={styles.container}>
-
-                    <Text style={styles.mainTitle}>
-                        Edit My Information
-                    </Text>
-
-                    <Text style={styles.mainText}>
-                        First Name:
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder={this.state.listData.first_name}
-                        onChangeText={(first_name) => this.state.listData["first_name"] = first_name}
-                    />
-
-                    <Text style={styles.mainText}>
-                        Last Name: 
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder={this.state.listData.last_name}
-                        onChangeText={(last_name) => this.state.listData["last_name"] = last_name}
-                    />
-
-
-                    <Text style={styles.mainText}>
-                        Email:
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder={this.state.listData.email}
-                        onChangeText={(email) => this.state.listData["email"] = email}
-                    />
-
-                    <Text style={styles.mainText}>
-                        Password:
-                    </Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder= "Enter A New Password"
-                        onChangeText={(password) => this.state.listData["password"] = password}
-                    />
-
-                    <View style={styles.container2}>
-                        <Button
-                            style={styles.button}
-                            title="Update"
-                            onPress={() => this.editInfo()}
-                        />
-                        <Button
-                            style={styles.button}
-                            title="Cancel"
-                            onPress={() => this.setState({isEditing: false})}
-                        />
-                    </View>
-                </View>
-            );
-        }
-        else if(this.state.isEditingImage)
-        {
-            if(this.state.hasPermission){
-                return(
-                  <View style={styles.camContainer}>
-                      
-                    <Camera 
-                      style={styles.camera} 
-                      type={this.state.type}
-                      ref={ref => this.camera = ref}
-                    >
-
-                    <View style={styles.camButtonContainer}>
-                        <TouchableOpacity
-                            style={styles.camButton}
-                            onPress={() => {
-                            this.takePicture();
-                            }}>
-                            <Text style={styles.camText}> Take Photo </Text>
-                        </TouchableOpacity>
-                    </View>
-                    </Camera>
-                    
-                    
-                    <Button
-                            style={styles.button}
-                            title="Cancel"
-                            onPress={() => this.setState({isEditingImage: false}, )}
-                        />
-                    
-
-                  </View>
-                );
-              }else{
-                return(
-                    <View>
-                        <Text>No access to camera</Text>
-
-                        <Button
-                            style={styles.button}
-                            title="Cancel"
-                            onPress={() => this.setState({isEditingImage: false})}
-                        />
-                    </View>
-                );
-              }
-        }
         else
         {
             return (
                 <View style={styles.container}>
 
-                    <TouchableOpacity onPress={() => this.setState({isEditingImage: true})}>
-                        <Image 
-                            style={styles.logo}
-                            source={{uri: this.state.photo}} 
-                        />
-                    </TouchableOpacity>
+                    <Image 
+                        style={styles.logo}
+                        source={{uri: this.state.photo}} 
+                    />
                     
-
                     <Text style={styles.mainTitle}>
                         {this.state.listData.first_name} {this.state.listData.last_name}
                     </Text>
@@ -336,7 +137,7 @@ class Profile extends Component {
                     <Button
                         style={styles.button}
                         title="Edit Profile"
-                        onPress={() => this.setState({isEditing: true})}
+                        onPress={() => this.props.navigation.navigate("Edit Profile")}
                     />
 
                     <Text style={styles.mainText}>
@@ -381,43 +182,11 @@ const styles = StyleSheet.create({
     {
         padding: 10
     },
-    input:
-    {
-        margin: 40,
-        padding: 10,
-        width: '70%'
-    },
     logo:
     {
         width: 200,
         height: 200
-    },
-    camContainer: {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
-      },
-      camera: {
-        margin: 40,
-        width: "100%",
-        height: "100%"
-      },
-      camButtonContainer: {
-        flex: 1,
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
-        margin: 20,
-      },
-      camButton: {
-        flex: 0.1,
-        alignSelf: 'flex-end',
-        alignItems: 'center',
-      },
-      camText: {
-        fontSize: 18,
-        color: 'white',
-      },
+    }
 });
 
 export default Profile;
