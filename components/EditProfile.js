@@ -5,196 +5,187 @@ import { Camera } from 'expo-camera';
 
 class Profile extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
-    
+
         this.state = {
-          isLoadingData: true,
-          isEditingImage: false,
-          listData: [],
-          hasPermission: null,
-          type: Camera.Constants.Type.back
+            isLoadingData: true,
+            isEditingImage: false,
+            listData: [],
+            hasPermission: null,
+            type: Camera.Constants.Type.back
         }
     }
 
     async componentDidMount() {
         this.getData();
-        const {status} = await Camera.requestCameraPermissionsAsync();
-        this.setState({hasPermission: status === 'granted'})
-      }
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        this.setState({ hasPermission: status === 'granted' })
+    }
 
-      sendToServer = async (data) =>
-        {
-            const SessionToken = await AsyncStorage.getItem('@session_token');
-            const UserId = await AsyncStorage.getItem('@user_id');
+    sendToServer = async (data) => {
+        const SessionToken = await AsyncStorage.getItem('@session_token');
+        const UserId = await AsyncStorage.getItem('@user_id');
 
-            let res = await fetch(data.base64);
-            let blob = await res.blob();
+        let res = await fetch(data.base64);
+        let blob = await res.blob();
 
-            return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/photo", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "image/png",
-                    "X-Authorization": SessionToken
-                },
-                body: blob
-            })
+        return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/photo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "image/png",
+                "X-Authorization": SessionToken
+            },
+            body: blob
+        })
             .then((response) => {
                 console.log("Picture added", response);
             })
             .catch((err) => {
                 console.log(err);
-            }) 
-        }
+            })
+    }
 
-      takePicture = async () => 
-      {
-          if(this.camera)
-          {
-              const options = {
-                  quality: 0.5,
-                  base64: true,
-                  onPictureSaved: (data) => this.sendToServer(data)
-              };
-              await this.camera.takePictureAsync(options);
-          }
-      }
-    
-    
-      getData = async () => {
+    takePicture = async () => {
+        if (this.camera) {
+            const options = {
+                quality: 0.5,
+                base64: true,
+                onPictureSaved: (data) => this.sendToServer(data)
+            };
+            await this.camera.takePictureAsync(options);
+        }
+    }
+
+
+    getData = async () => {
         const SessionToken = await AsyncStorage.getItem('@session_token');
         const UserId = await AsyncStorage.getItem('@user_id');
         return fetch("http://localhost:3333/api/1.0.0/user/" + UserId, {
-              'headers': {
-                'X-Authorization':  SessionToken
-              }
-            })
+            'headers': {
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return response.json()
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
             .then((responseJson) => {
-              this.setState({
-                isLoadingData: false,
-                listData: responseJson
-              })
+                this.setState({
+                    isLoadingData: false,
+                    listData: responseJson
+                })
             })
             .catch((error) => {
                 console.log(error);
             })
-      }
-    
+    }
 
-    editInfo = async () =>
-    {
-        
+
+    editInfo = async () => {
+
         let userID = await AsyncStorage.getItem('@user_id');
         let token = await AsyncStorage.getItem('@session_token');
-        return fetch("http://localhost:3333/api/1.0.0/user/" + userID, 
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                "X-Authorization": token
-            },
-            body: JSON.stringify(this.state.listData)
-        }
+        return fetch("http://localhost:3333/api/1.0.0/user/" + userID,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "X-Authorization": token
+                },
+                body: JSON.stringify(this.state.listData)
+            }
         )
 
-        .then((response) =>
-        {
-            if(response.status === 200){
-                window.location.reload(false);
-            }else if(response.status === 400){
-                throw 'Bad Request';
-            }else if(response.status === 403){
-                throw 'Forbidden';
-            }else if(response.status === 404){
-                throw 'Not Found';
-            }else if(response.status === 500){
-                throw 'Server Error';
-            }else{
-                throw 'Something went wrong';
-            }
-        })
+            .then((response) => {
+                if (response.status === 200) {
+                    window.location.reload(false);
+                } else if (response.status === 400) {
+                    throw 'Bad Request';
+                } else if (response.status === 403) {
+                    throw 'Forbidden';
+                } else if (response.status === 404) {
+                    throw 'Not Found';
+                } else if (response.status === 500) {
+                    throw 'Server Error';
+                } else {
+                    throw 'Something went wrong';
+                }
+            })
 
-        .catch((error) => 
-        {
-            console.log(error);
-        })
+            .catch((error) => {
+                console.log(error);
+            })
     }
 
 
 
     render() {
-        if (this.state.isLoadingData)
-        {
+        if (this.state.isLoadingData) {
             return (
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Text>Loading..</Text>
-              </View>
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>Loading..</Text>
+                </View>
             );
         }
-        else if(this.state.isEditingImage)
-        {
-            if(this.state.hasPermission){
-                return(
-                  <View style={styles.camContainer}>
-                      
-                    <Camera 
-                      style={styles.camera} 
-                      type={this.state.type}
-                      ref={ref => this.camera = ref}
-                    >
+        else if (this.state.isEditingImage) {
+            if (this.state.hasPermission) {
+                return (
+                    <View style={styles.camContainer}>
 
-                    <View style={styles.camButtonContainer}>
-                        <TouchableOpacity
-                            style={styles.camButton}
-                            onPress={() => {
-                            this.takePicture();
-                            }}>
-                            <Text style={styles.camText}> Take Photo </Text>
-                        </TouchableOpacity>
-                    </View>
-                    </Camera>
-                    
-                    
-                    <Button
+                        <Camera
+                            style={styles.camera}
+                            type={this.state.type}
+                            ref={ref => this.camera = ref}
+                        >
+
+                            <View style={styles.camButtonContainer}>
+                                <TouchableOpacity
+                                    style={styles.camButton}
+                                    onPress={() => {
+                                        this.takePicture();
+                                    }}>
+                                    <Text style={styles.camText}> Take Photo </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </Camera>
+
+
+                        <Button
                             style={styles.button}
                             title="Cancel"
-                            onPress={() => this.setState({isEditingImage: false})}
+                            onPress={() => this.setState({ isEditingImage: false })}
                         />
-                    
 
-                  </View>
+
+                    </View>
                 );
-              }else{
-                return(
+            } else {
+                return (
                     <View>
                         <Text>No access to camera</Text>
 
                         <Button
                             style={styles.button}
                             title="Cancel"
-                            onPress={() => this.setState({isEditingImage: false})}
+                            onPress={() => this.setState({ isEditingImage: false })}
                         />
                     </View>
                 );
-              }
+            }
         }
-        else
-        {
+        else {
             return (
                 <View style={styles.container}>
 
@@ -205,7 +196,7 @@ class Profile extends Component {
                     <Button
                         style={styles.button}
                         title="Update Profile Picture"
-                        onPress={() => this.setState({isEditingImage: true})}
+                        onPress={() => this.setState({ isEditingImage: true })}
                     />
 
                     <Text style={styles.mainText}>
@@ -219,7 +210,7 @@ class Profile extends Component {
                     />
 
                     <Text style={styles.mainText}>
-                        Last Name: 
+                        Last Name:
                     </Text>
 
                     <TextInput
@@ -245,7 +236,7 @@ class Profile extends Component {
 
                     <TextInput
                         style={styles.input}
-                        placeholder= "Enter A New Password"
+                        placeholder="Enter A New Password"
                         onChangeText={(password) => this.state.listData["password"] = password}
                     />
 
@@ -300,33 +291,33 @@ const styles = StyleSheet.create({
         padding: 10,
         width: '70%'
     },
-    camContainer: 
+    camContainer:
     {
         flex: 1,
         flexDirection: "column",
         justifyContent: 'space-evenly',
         alignItems: 'center'
     },
-    camera: 
+    camera:
     {
         margin: 40,
         width: "100%",
         height: "100%"
     },
-    camButtonContainer: 
+    camButtonContainer:
     {
         flex: 1,
         backgroundColor: 'transparent',
         flexDirection: 'row',
         margin: 20,
     },
-    camButton: 
+    camButton:
     {
         flex: 0.1,
         alignSelf: 'flex-end',
         alignItems: 'center',
     },
-    camText: 
+    camText:
     {
         fontSize: 18,
         color: 'white',

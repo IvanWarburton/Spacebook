@@ -14,52 +14,46 @@ import FriendRequestScreen from './components/FriendRequests';
 
 const Drawer = createDrawerNavigator();
 
-class App extends Component{
+class App extends Component {
 
-    constructor(props)
-    {
+    constructor(props) {
 
-        
+
         super(props);
 
-        this.state = 
+        this.state =
         {
             isLoggedIn: false
         }
     }
 
-    componentDidMount() 
-    {
+    componentDidMount() {
         this.Login();
     }
-    
 
-    Login = async () =>
-    {
-        const LoggedInToken = await AsyncStorage.getItem('@session_token'); 
 
-        if(LoggedInToken == null)
-        {
+    Login = async () => {
+        const LoggedInToken = await AsyncStorage.getItem('@session_token');
+
+        if (LoggedInToken == null) {
             this.setState(
-            {
-                 isLoggedIn: false
-            })
+                {
+                    isLoggedIn: false
+                })
         }
-        else
-        {
+        else {
             this.setState(
-            {
-                isLoggedIn: true
-            })
+                {
+                    isLoggedIn: true
+                })
         }
     }
 
 
-    render(){
+    render() {
 
-        
-        if(this.state.isLoggedIn == true)
-        {
+
+        if (this.state.isLoggedIn == true) {
             return (
                 <NavigationContainer>
                     <Drawer.Navigator initialRouteName="Profile">
@@ -68,12 +62,11 @@ class App extends Component{
                         <Drawer.Screen name="Friends" component={FriendsScreen} />
                         <Drawer.Screen name="Friend Requests" component={FriendRequestScreen} />
                     </Drawer.Navigator>
-                    
+
                 </NavigationContainer>
             );
         }
-        else
-        {
+        else {
             return (
                 <NavigationContainer>
                     <Drawer.Navigator initialRouteName="Sign In">

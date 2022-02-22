@@ -4,178 +4,170 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 class Friends extends Component {
-    
-    constructor(props){
+
+    constructor(props) {
         super(props);
 
         this.state = {
             isLoadingData: true,
-            friendList:[],
-            searchedFriends:[],
+            friendList: [],
+            searchedFriends: [],
             search: ""
         }
     }
 
     async componentDidMount() {
         this.getFriends();
-      }
+    }
 
     getFriends = async () => {
         const SessionToken = await AsyncStorage.getItem('@session_token');
         const UserId = await AsyncStorage.getItem('@user_id');
         return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/friends", {
-              'headers': {
-                'X-Authorization':  SessionToken
-              }
-            })
+            'headers': {
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return response.json()
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
             .then((responseJson) => {
-              this.setState({
-                isLoadingData: false,
-                friendList: responseJson
-              })
-            })
-            .catch((error) => {
-                console.log(error);
-            })
-      }
-
-    searchForFriends = async () =>
-    {
-        this.setState({isLoadingData: true});
-
-        const SessionToken = await AsyncStorage.getItem('@session_token');
-
-        return fetch("http://localhost:3333/api/1.0.0/search?q=" + this.state.search + "&limit=20", {
-              'headers': {
-                'X-Authorization':  SessionToken
-              }
-            })
-            .then((response) => {
-                if(response.status === 200){
-                    return response.json()
-                }else if(response.status === 401){
-                    console.log("Unauthorised");
-                }else{
-                    throw 'Something went wrong';
-                }
-            })
-            .then((responseJson) => {
-              this.setState({
-                isLoadingData: false,
-                searchedFriends: responseJson
-              })
+                this.setState({
+                    isLoadingData: false,
+                    friendList: responseJson
+                })
             })
             .catch((error) => {
                 console.log(error);
             })
     }
 
-    searchResults = () =>
-    {
+    searchForFriends = async () => {
+        this.setState({ isLoadingData: true });
+
+        const SessionToken = await AsyncStorage.getItem('@session_token');
+
+        return fetch("http://localhost:3333/api/1.0.0/search?q=" + this.state.search + "&limit=20", {
+            'headers': {
+                'X-Authorization': SessionToken
+            }
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json()
+                } else if (response.status === 401) {
+                    console.log("Unauthorised");
+                } else {
+                    throw 'Something went wrong';
+                }
+            })
+            .then((responseJson) => {
+                this.setState({
+                    isLoadingData: false,
+                    searchedFriends: responseJson
+                })
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+
+    searchResults = () => {
         let UserId = AsyncStorage.getItem('@user_id');
 
-        for(let i = 0; i<this.state.searchedFriends.length; i++)
-        { 
+        for (let i = 0; i < this.state.searchedFriends.length; i++) {
             console.log(UserId);
             console.log(this.state.searchedFriends[i].user_id);
-            if(this.state.searchedFriends[i].user_id == UserId)
-            {
-                this.state.searchedFriends.splice(i,1)
-            } 
+            if (this.state.searchedFriends[i].user_id == UserId) {
+                this.state.searchedFriends.splice(i, 1)
+            }
         }
 
-        for(let i = 0; i<this.state.searchedFriends.length; i++)
-        { 
-            for(let j = 0; j<this.state.friendList.length; j++)
-            {
-                if (this.state.searchedFriends[i].user_id == this.state.friendList[j].user_id)
-                {
-                    this.state.searchedFriends.splice(i,1)
+        for (let i = 0; i < this.state.searchedFriends.length; i++) {
+            for (let j = 0; j < this.state.friendList.length; j++) {
+                if (this.state.searchedFriends[i].user_id == this.state.friendList[j].user_id) {
+                    this.state.searchedFriends.splice(i, 1)
                 }
             }
         }
 
         let searchResults = [];
 
-        for(let i = 0; i<this.state.searchedFriends.length; i++)
-        {  
+        for (let i = 0; i < this.state.searchedFriends.length; i++) {
             searchResults.push(
-            <View style={styles.container2}>
-                <Text>
-                    {this.state.searchedFriends[i].user_givenname + " " + this.state.searchedFriends[i].user_familyname}
-                </Text>
-                <Text>
-                    {" " + this.state.searchedFriends[i].user_email}
-                </Text>
-                <Button
-                    style={styles.button}
-                    title="Add Friend"
-                    padding="10"
-                    onPress={() => this.addFriend(this.state.searchedFriends[i].user_id)}
-                />
-            </View>
+                <View style={styles.container2}>
+                    <Text>
+                        {this.state.searchedFriends[i].user_givenname + " " + this.state.searchedFriends[i].user_familyname}
+                    </Text>
+                    <Text>
+                        {" " + this.state.searchedFriends[i].user_email}
+                    </Text>
+                    <Button
+                        style={styles.button}
+                        title="Add Friend"
+                        padding="10"
+                        onPress={() => this.addFriend(this.state.searchedFriends[i].user_id)}
+                    />
+                </View>
             );
-              
+
         }
 
         return searchResults;
- 
+
     }
 
-    friendsResultList = () =>
-    {
+    friendsResultList = () => {
         let Friends = [];
 
-        for(let i = 0; i<this.state.friendList.length; i++)
-        {  
+        for (let i = 0; i < this.state.friendList.length; i++) {
             Friends.push(
-            <TouchableOpacity style={styles.container2} /*onpress view friends profile */>
-                <Text>
-                    {this.state.friendList[i].user_givenname + " " + this.state.friendList[i].user_familyname}
-                </Text>
-                <Text>
-                    {" " + this.state.friendList[i].user_email}
-                </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.container2}
+                    onPress={() => this.props.navigation.navigate("Profile", {UserId: this.state.friendList[i].user_id})}
+                >
+                    <Text>
+                        {this.state.friendList[i].user_givenname + " " + this.state.friendList[i].user_familyname}
+                    </Text>
+                    <Text>
+                        {" " + this.state.friendList[i].user_email}
+                    </Text>
+                </TouchableOpacity>
             );
-              
+
         }
 
         return Friends;
- 
+
     }
 
-    async addFriend(firendID)
-    {
+    async addFriend(firendID) {
         const SessionToken = await AsyncStorage.getItem('@session_token');
 
         return fetch("http://localhost:3333/api/1.0.0/user/" + firendID + "/friends", {
             method: 'post',
             headers: {
-                'X-Authorization':  SessionToken
-              }
-            })
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return "Friend Added"
-                }else if(response.status === 201){
+                } else if (response.status === 201) {
                     return "Friend Added"
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else if(response.status === 403){
+                } else if (response.status === 403) {
                     console.log("User is already added as a friend");
-                }else if(response.status === 404){
+                } else if (response.status === 404) {
                     console.log("not Found");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
@@ -184,35 +176,33 @@ class Friends extends Component {
             })
     }
 
-    
-    
+
+
     render() {
-        if (this.state.isLoadingData)
-        {
+        if (this.state.isLoadingData) {
             return (
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Text>Loading..</Text>
-              </View>
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>Loading..</Text>
+                </View>
             );
         }
-        else if(this.state.friendList.length > 0)
-        {
+        else if (this.state.friendList.length > 0) {
             return (
                 <View style={styles.container}>
-    
+
                     <View style={styles.container2}>
-                        
+
                         <Text style={styles.mainTitle}>
                             SpaceBook Friends
                         </Text>
                     </View>
-                    
+
                     <ScrollView>
                         {this.friendsResultList(this)}
                     </ScrollView>
@@ -220,10 +210,10 @@ class Friends extends Component {
                     <TextInput
                         style={styles.input}
                         placeholder="Search for friends"
-                        onChangeText={(search) => this.setState({search})}
+                        onChangeText={(search) => this.setState({ search })}
                         value={this.state.search}
                     />
-                        
+
                     <Button
                         style={styles.button}
                         title="Search"
@@ -232,49 +222,48 @@ class Friends extends Component {
                     />
 
                     <ScrollView>
-                        <this.searchResults/>
+                        <this.searchResults />
                     </ScrollView>
 
                 </View>
             );
         }
-        else
-        {
-        return (
-            <View style={styles.container}>
+        else {
+            return (
+                <View style={styles.container}>
 
-                <View style={styles.container2}>
-                    
-                    <Text style={styles.mainTitle}>
-                        SpaceBook Friends
+                    <View style={styles.container2}>
+
+                        <Text style={styles.mainTitle}>
+                            SpaceBook Friends
+                        </Text>
+                    </View>
+
+                    <Text style={styles.mainText}>
+                        It doesnt look like you have any friends at this time.
                     </Text>
-                </View>
-                
-                <Text style={styles.mainText}>
-                    It doesnt look like you have any friends at this time.
-                </Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Search for friends"
-                    onChangeText={(search) => this.setState({search})}
-                    value={this.state.search}
-                />
-                        
-                <Button
-                    style={styles.button}
-                    title="Search"
-                    padding="10"
-                    onPress={() => this.searchForFriends()}
-                />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Search for friends"
+                        onChangeText={(search) => this.setState({ search })}
+                        value={this.state.search}
+                    />
+
+                    <Button
+                        style={styles.button}
+                        title="Search"
+                        padding="10"
+                        onPress={() => this.searchForFriends()}
+                    />
 
                     <ScrollView>
-                        <this.searchResults/>
+                        <this.searchResults />
                     </ScrollView>
-                
 
-            </View>
-        );
+
+                </View>
+            );
         }
     }
 }

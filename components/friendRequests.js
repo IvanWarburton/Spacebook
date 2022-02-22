@@ -4,70 +4,68 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class FriendRequests extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
 
         this.state = {
             isLoadingData: true,
-            requestList:[]
+            requestList: []
         }
     }
 
     async componentDidMount() {
         this.searchForRequests();
-      }
+    }
 
-    searchForRequests = async () =>
-    {
+    searchForRequests = async () => {
         const SessionToken = await AsyncStorage.getItem('@session_token');
 
         return fetch("http://localhost:3333/api/1.0.0/friendrequests", {
-              'headers': {
-                'X-Authorization':  SessionToken
-              }
-            })
+            'headers': {
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return response.json()
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
             .then((responseJson) => {
-              this.setState({
-                isLoadingData: false,
-                requestList: responseJson
-              })
+                this.setState({
+                    isLoadingData: false,
+                    requestList: responseJson
+                })
             })
             .catch((error) => {
                 console.log(error);
             })
     }
 
-    async acceptFriend(firendID)
-    {
+    async acceptFriend(firendID) {
         const SessionToken = await AsyncStorage.getItem('@session_token');
 
         return fetch("http://localhost:3333/api/1.0.0/friendrequests/" + firendID, {
             method: 'post',
             headers: {
-                'X-Authorization':  SessionToken
-              }
-            })
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return "Request Accepted"
-                }else if(response.status === 201){
+                } else if (response.status === 201) {
                     return "Request Accepted"
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else if(response.status === 403){
+                } else if (response.status === 403) {
                     console.log("User is already added as a friend");
-                }else if(response.status === 404){
+                } else if (response.status === 404) {
                     console.log("not Found");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
@@ -76,28 +74,27 @@ class FriendRequests extends Component {
             })
     }
 
-    async rejectFriend(firendID)
-    {
+    async rejectFriend(firendID) {
         const SessionToken = await AsyncStorage.getItem('@session_token');
 
         return fetch("http://localhost:3333/api/1.0.0/friendrequests/" + firendID, {
             method: 'DELETE',
             headers: {
-                'X-Authorization':  SessionToken
-              }
-            })
+                'X-Authorization': SessionToken
+            }
+        })
             .then((response) => {
-                if(response.status === 200){
+                if (response.status === 200) {
                     return "Request Accepted"
-                }else if(response.status === 201){
+                } else if (response.status === 201) {
                     return "Request Accepted"
-                }else if(response.status === 401){
+                } else if (response.status === 401) {
                     console.log("Unauthorised");
-                }else if(response.status === 403){
+                } else if (response.status === 403) {
                     console.log("User is already added as a friend");
-                }else if(response.status === 404){
+                } else if (response.status === 404) {
                     console.log("not Found");
-                }else{
+                } else {
                     throw 'Something went wrong';
                 }
             })
@@ -106,95 +103,90 @@ class FriendRequests extends Component {
             })
     }
 
-    displayResults = () =>
-    {
+    displayResults = () => {
         let searchResults = [];
 
-        for(let i = 0; i<this.state.requestList.length; i++)
-        {  
+        for (let i = 0; i < this.state.requestList.length; i++) {
             searchResults.push(
-            <View style={styles.container2}>
-                <Text>
-                    {this.state.requestList[i].first_name + " " + this.state.requestList[i].last_name}
-                </Text>
-                <Text>
-                    {" " + this.state.requestList[i].email}
-                </Text>
-                <Button
-                    style={styles.button}
-                    title="Accept Request"
-                    padding="10"
-                    onPress={() => this.acceptFriend(this.state.requestList[i].user_id)}
-                />
-                <Button
-                    style={styles.button}
-                    title="Reject Request"
-                    padding="10"
-                    onPress={() => this.rejectFriend(this.state.requestList[i].user_id)}
-                />
-            </View>
+                <View style={styles.container2}>
+                    <Text>
+                        {this.state.requestList[i].first_name + " " + this.state.requestList[i].last_name}
+                    </Text>
+                    <Text>
+                        {" " + this.state.requestList[i].email}
+                    </Text>
+                    <Button
+                        style={styles.button}
+                        title="Accept Request"
+                        padding="10"
+                        onPress={() => this.acceptFriend(this.state.requestList[i].user_id)}
+                    />
+                    <Button
+                        style={styles.button}
+                        title="Reject Request"
+                        padding="10"
+                        onPress={() => this.rejectFriend(this.state.requestList[i].user_id)}
+                    />
+                </View>
             );
-              
+
         }
 
         return searchResults;
- 
+
     }
 
 
     render() {
-        if (this.state.isLoadingData)
-        {
+        if (this.state.isLoadingData) {
             return (
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Text>Loading..</Text>
-              </View>
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>Loading..</Text>
+                </View>
             );
         }
-        else if(this.state.requestList.length > 0)
-        {
+        else if (this.state.requestList.length > 0) {
             return (
                 <View style={styles.container}>
-    
+
                     <View style={styles.container2}>
-                        
+
                         <Text style={styles.mainTitle}>
                             SpaceBook Friend Requests
                         </Text>
                     </View>
 
                     <ScrollView>
-                        <this.displayResults/>
+                        <this.displayResults />
                     </ScrollView>
 
                 </View>
             );
         }
-        else
-        {
-        return (
-            <View style={styles.container}>
+        else {
+            return (
+                <View style={styles.container}>
 
-                <View style={styles.container2}>
-                    
-                    <Text style={styles.mainTitle}>
-                        SpaceBook Friends  Requests
+                    <View style={styles.container2}>
+
+                        <Text style={styles.mainTitle}>
+                            SpaceBook Friends  Requests
+                        </Text>
+                    </View>
+
+
+                    <Text style={styles.mainText}>
+                        It doesnt look like you have any friends requests at this time.
                     </Text>
-                </View>
-                
-                
-                <Text style={styles.mainText}>
-                    It doesnt look like you have any friends requests at this time.
-                </Text>
 
-            </View>
-        );
+                </View>
+            );
         }
     }
 }
