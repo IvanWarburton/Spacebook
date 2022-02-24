@@ -130,7 +130,7 @@ class Friends extends Component {
             Friends.push(
                 <TouchableOpacity
                     style={styles.container2}
-                    onPress={() => this.props.navigation.navigate("Profile", {UserId: this.state.friendList[i].user_id})}
+                    onPress={() => this.goto(this.state.friendList[i].user_id)}
                 >
                     <Text>
                         {this.state.friendList[i].user_givenname + " " + this.state.friendList[i].user_familyname}
@@ -145,6 +145,12 @@ class Friends extends Component {
 
         return Friends;
 
+    }
+
+    async goto(userID)
+    {
+        await AsyncStorage.setItem('@viewing_user_id', userID);
+        window.location.reload(false);
     }
 
     async addFriend(firendID) {

@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { Component } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerNavigator} from '@react-navigation/drawer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import SignInScreen from './components/SignIn';
@@ -17,7 +17,6 @@ const Drawer = createDrawerNavigator();
 class App extends Component {
 
     constructor(props) {
-
 
         super(props);
 

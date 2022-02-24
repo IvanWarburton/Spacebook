@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, Image } from 'react-native';
+import React, { Component, useState } from 'react';
+import { View, Text, StyleSheet, Button, Image, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Profile extends Component {
@@ -13,19 +13,28 @@ class Profile extends Component {
             listData: [],
             loggedInUser: null,
             sessionToken: null,
-            //Broken Bit v
-            viewingUsersId: this.props.route.params.UserId,
-            loggedInUserViewing: false
+            viewingUsersId: null,
+            loggedInUserViewing: false,
+            isModalVisible: false,
+            friendsFriendList: [],
+            modalIsLoading: false
         }
+
     }
 
     async componentDidMount() {
         this.setState({
             sessionToken: await AsyncStorage.getItem('@session_token'),
-            loggedInUser: await AsyncStorage.getItem('@user_id')
+            loggedInUser: await AsyncStorage.getItem('@user_id'),
+            viewingUsersId: await AsyncStorage.getItem('@viewing_user_id')
         });
+        await AsyncStorage.removeItem('@viewing_user_id');
+        if (this.state.viewingUsersId == this.state.loggedInUser) {
+            this.setState({ viewingUsersId: null });
+        }
         this.getData();
     }
+
 
     getProfilePicture = async () => {
         let UserId = null;
@@ -42,6 +51,7 @@ class Profile extends Component {
                     photo: data,
                     isLoading: false
                 })
+                if(this.state.viewingUsersId != null){this.getFriendsFriends();}
             })
             .catch((err) => {
                 console.log("error", err)
@@ -110,7 +120,78 @@ class Profile extends Component {
             })
     }
 
+    setModalVisible() {
+        if (this.state.isModalVisible == false) { this.setState({ isModalVisible: true }); }
+        else { this.setState({ isModalVisible: false }); }
+    }
+
+    getFriendsFriends()
+    {
+        return fetch("http://localhost:3333/api/1.0.0/user/" + this.state.viewingUsersId + "/friends", {
+            'headers': {
+                'X-Authorization': this.state.sessionToken
+            }
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json()
+                } else if (response.status === 401) {
+                    console.log("Unauthorised");
+                } else {
+                    throw 'Something went wrong';
+                }
+            })
+            .then((responseJson) => {
+                this.setState({
+                    modalIsLoading: false,
+                    friendsFriendList: responseJson
+                })
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+
+    friendsResultList = () => {
+
+        let Friends = [];
+
+        if (this.state.modalIsLoading) {
+            return (
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>Loading..</Text>
+                </View>
+            );
+        }
+        else {
+
+            for (let i = 0; i < this.state.friendsFriendList.length; i++) {
+                Friends.push(
+                    <View>
+                        <Text>
+                            {this.state.friendsFriendList[i].user_givenname + " " + this.state.friendsFriendList[i].user_familyname}
+                        </Text>
+                        <Text>
+                            {" " + this.state.friendsFriendList[i].user_email}
+                        </Text>
+                    </View>
+                );
+
+            }
+
+            return Friends;
+        }
+
+    }
+
     render() {
+        const { isModalVisible } = this.state;
         if (this.state.isLoading) {
             return (
                 <View
@@ -128,6 +209,14 @@ class Profile extends Component {
             return (
                 <View style={styles.container}>
 
+                    {!this.state.loggedInUserViewing && (
+                        <Button
+                            style={styles.buttonBack}
+                            title={"Back to Your Profile"}
+                            onPress={() => window.location.reload(false)}
+                        />)
+                    }
+
                     <Image
                         style={styles.logo}
                         source={{ uri: this.state.photo }}
@@ -142,11 +231,33 @@ class Profile extends Component {
                         Email: {this.state.listData.email}
                     </Text>
 
-                    <Button
-                        style={styles.button}
-                        title={"Friends: " + this.state.listData.friend_count}
-                        onPress={() => this.props.navigation.navigate("Friends")}
-                    />
+                    {this.state.loggedInUserViewing && (
+                        <Button
+                            style={styles.button}
+                            title={"Friends: " + this.state.listData.friend_count}
+                            onPress={() => this.props.navigation.navigate("Friends")}
+                        />
+                    )}
+
+
+                    {!this.state.loggedInUserViewing && (
+                    <View>
+                    <Button title={"Friends: " + this.state.listData.friend_count} onPress={() => this.setModalVisible()} />
+
+                    <Modal visible={isModalVisible}
+                        animationType="fade"
+                        transparent={true}>
+
+                        <View style={styles.modalView}>
+
+                            <this.friendsResultList />
+
+                            <Button title="Close" onPress={() => this.setModalVisible()} />
+                        </View>
+
+                    </Modal>
+                    </View>
+                    )}
 
                     {this.state.loggedInUserViewing && (
                         <Button
@@ -198,12 +309,38 @@ const styles = StyleSheet.create({
     },
     button:
     {
+        justifyContent: 'flex-start'
+    },
+    buttonBack:
+    {
         padding: 10
     },
     logo:
     {
         width: 200,
         height: 200
+    },
+    centeredView:
+    {
+
+    },
+    modalView:
+    {
+        flex: 1,
+        margin: 20,
+        marginVertical: "50%",
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
     }
 });
 
