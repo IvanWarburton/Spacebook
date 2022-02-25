@@ -40,6 +40,7 @@ class Profile extends Component {
         })
             .then((response) => {
                 console.log("Picture added", response);
+                window.location.reload(false);
             })
             .catch((err) => {
                 console.log(err);
@@ -54,6 +55,7 @@ class Profile extends Component {
                 onPictureSaved: (data) => this.sendToServer(data)
             };
             await this.camera.takePictureAsync(options);
+            
         }
     }
 

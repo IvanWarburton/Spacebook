@@ -1,5 +1,5 @@
-import React, { Component, useState } from 'react';
-import { View, Text, StyleSheet, Button, Image, Modal } from 'react-native';
+import React, { Component} from 'react';
+import { View, Text, StyleSheet, Button, Image, Modal, ScrollView,TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class Profile extends Component {
@@ -8,16 +8,21 @@ class Profile extends Component {
         super(props);
 
         this.state = {
-            isLoading: true,
-            photo: null,
             listData: [],
+            friendsFriendList: [],
+            posts: [],
+            isLoading: true,
+            isLoadingPosts: true,
+            photo: null,
             loggedInUser: null,
             sessionToken: null,
             viewingUsersId: null,
             loggedInUserViewing: false,
             isModalVisible: false,
-            friendsFriendList: [],
-            modalIsLoading: false
+            modalIsLoading: false,
+            noPostsFound: true,
+            post: {text: ""}
+            
         }
 
     }
@@ -48,10 +53,10 @@ class Profile extends Component {
             .then((resBlob) => {
                 let data = URL.createObjectURL(resBlob);
                 this.setState({
-                    photo: data,
-                    isLoading: false
+                    photo: data
                 })
                 if(this.state.viewingUsersId != null){this.getFriendsFriends();}
+                this.getPosts();
             })
             .catch((err) => {
                 console.log("error", err)
@@ -125,7 +130,7 @@ class Profile extends Component {
         else { this.setState({ isModalVisible: false }); }
     }
 
-    getFriendsFriends()
+    async getFriendsFriends()
     {
         return fetch("http://localhost:3333/api/1.0.0/user/" + this.state.viewingUsersId + "/friends", {
             'headers': {
@@ -178,7 +183,7 @@ class Profile extends Component {
                             {this.state.friendsFriendList[i].user_givenname + " " + this.state.friendsFriendList[i].user_familyname}
                         </Text>
                         <Text>
-                            {" " + this.state.friendsFriendList[i].user_email}
+                            {this.state.friendsFriendList[i].user_email}
                         </Text>
                     </View>
                 );
@@ -190,8 +195,175 @@ class Profile extends Component {
 
     }
 
+    getPosts = async () =>
+    {
+        let user = null;
+
+        if(this.state.viewingUsersId == null){user = this.state.loggedInUser;}
+        else{user = this.state.viewingUsersId;}
+
+        return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post", {
+            'headers': {
+                'X-Authorization': this.state.sessionToken
+            }
+        })
+        .then((response) => {
+            if (response.status === 200) {
+                return response.json()
+            } else if (response.status === 401) {
+                console.log("Unauthorised");
+            }else if (response.status === 403) {
+                console.log("Not friends with user");
+            }else if (response.status === 404) {
+                console.log("Not found");
+            }else if (response.status === 500) {
+                console.log("Server Error");
+            } else {
+                throw 'Something went wrong';
+            }
+        })
+        .then((responseJson) => {
+            if(responseJson.length == 0)
+            {
+                this.setState({
+                    isLoading: false,
+                    isLoadingPosts: false,
+                    noPostsFound: true,
+                })
+            }
+            else{
+                this.setState({
+                    isLoading: false,
+                    isLoadingPosts: false,
+                    noPostsFound: false,
+                    posts: responseJson
+                })
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+    }
+
+    postLists = () =>
+    {
+        let Posts = [];
+
+        if (this.state.isLoadingPosts) {
+            return (
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>Loading..</Text>
+                </View>
+            );
+        }
+        else if(this.state.noPostsFound)
+        {
+            return (
+                <View
+                    style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}>
+                    <Text>There are no posts at this time.</Text>
+
+                    <View style={styles.container2}>
+                        <TextInput
+                        style={styles.input}
+                        placeholder="Add Post"
+                        onChangeText={(text) => this.state.post.text = text}
+                        />
+                        
+                        <Button
+                            title="Add Post"
+                            onPress={() => this.createPost()}
+                        /> 
+                    </View>
+
+                </View>
+            );
+        }
+        else {
+            Posts.push(
+            <View style={styles.container2}>
+                <TextInput
+                style={styles.input}
+                placeholder="Add Post"
+                onChangeText={(text) => this.state.post.text = text}
+                />
+                
+                <Button
+                    title="Add Post"
+                    onPress={() => this.createPost()}
+                /> 
+            </View>);
+            
+            for (let i = 0; i < this.state.posts.length; i++) {
+                Posts.push(
+                    <View>
+                        <Text>
+                            {this.state.posts[i].author.first_name} {this.state.posts[i].last_name}:
+                        </Text>
+                        <Text>
+                            {this.state.posts[i].text}
+                        </Text>
+                        <Text>
+                            Likes: {this.state.posts[i].numLikes} Time Posted: {this.state.posts[i].timestamp}
+                        </Text>
+
+                    </View>
+                );
+
+            }
+
+            return Posts;
+        }
+    }
+
+    async createPost()
+    {
+        let user = null;
+        this.setState({isLoadingPosts: true});
+
+        if(this.state.viewingUsersId == null){user = this.state.loggedInUser;}
+        else{user = this.state.viewingUsersId;}
+
+        return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post", {
+            method: 'post',
+            headers: 
+            {
+                'Content-Type': 'application/json',
+                'X-Authorization': this.state.sessionToken
+            },
+            body: JSON.stringify(this.state.post)
+        })
+        .then((response) => {
+            if (response.status === 201) {
+                console.log("Created");
+                this.getPosts();
+            } else if (response.status === 401) {
+                console.log("Unauthorised");
+            } else if (response.status === 404) {
+                console.log("Not found");
+            } else if (response.status === 500) {
+                console.log("Server Error");
+            } else {
+                throw 'Something went wrong';
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+    }
+
     render() {
-        const { isModalVisible } = this.state;
         if (this.state.isLoading) {
             return (
                 <View
@@ -232,19 +404,30 @@ class Profile extends Component {
                     </Text>
 
                     {this.state.loggedInUserViewing && (
+                        <View style={styles.container2}>
                         <Button
-                            style={styles.button}
+                            
+                            title="Edit Profile"
+                            onPress={() => this.props.navigation.navigate("Edit Profile")}
+                        />
+                        <Button
+                            
                             title={"Friends: " + this.state.listData.friend_count}
                             onPress={() => this.props.navigation.navigate("Friends")}
                         />
+                        <Button
+                            
+                            title="Sign Out"
+                            onPress={() => this.signOut()}
+                        />
+                        </View>
                     )}
-
 
                     {!this.state.loggedInUserViewing && (
                     <View>
                     <Button title={"Friends: " + this.state.listData.friend_count} onPress={() => this.setModalVisible()} />
 
-                    <Modal visible={isModalVisible}
+                    <Modal visible={this.state.isModalVisible}
                         animationType="fade"
                         transparent={true}>
 
@@ -259,25 +442,10 @@ class Profile extends Component {
                     </View>
                     )}
 
-                    {this.state.loggedInUserViewing && (
-                        <Button
-                            style={styles.button}
-                            title="Edit Profile"
-                            onPress={() => this.props.navigation.navigate("Edit Profile")}
-                        />)
-                    }
-
-                    <Text style={styles.mainText}>
-                        Posts: .....
-                    </Text>
-
-                    {this.state.loggedInUserViewing && (
-                        <Button
-                            style={styles.button}
-                            title="Sign Out"
-                            onPress={() => this.signOut()}
-                        />
-                    )}
+                    <ScrollView style={styles.thing}>
+                    <this.postLists />
+                    </ScrollView>
+ 
                 </View>
             )
         }
@@ -294,21 +462,31 @@ const styles = StyleSheet.create({
     },
     container2:
     {
+        flex: 1,
         flexDirection: "row",
         justifyContent: 'space-evenly'
     },
+    thing:
+    {
+        padding: 10
+    },
     mainTitle:
     {
+        flex: 1,
         fontSize: 40,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        padding: 10
     },
     mainText:
     {
+        flex: 1,
         fontSize: 20,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        padding: 10
     },
     button:
     {
+        flex: 1,
         justifyContent: 'flex-start'
     },
     buttonBack:
@@ -317,12 +495,9 @@ const styles = StyleSheet.create({
     },
     logo:
     {
+        margin: 20,
         width: 200,
         height: 200
-    },
-    centeredView:
-    {
-
     },
     modalView:
     {
