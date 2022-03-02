@@ -24,7 +24,9 @@ class Profile extends Component {
             postModalVisible: false,
             modalIsLoading: false,
             noPostsFound: true,
-            post: { text: "" }
+            post: { text: "" },
+            counter: 0,
+
         }
 
     }
@@ -246,7 +248,7 @@ class Profile extends Component {
 
     postLists = () => {
         let Posts = [];
-
+        
         if (this.state.isLoadingPosts) {
             return (
                 <View
@@ -302,11 +304,11 @@ class Profile extends Component {
                     />
                 </View>);
 
-            for (let i = 0; i < this.state.posts.length; i++) {
+            for (let i = 0; i < this.state.posts.length; i++) {               
                 Posts.push(
                     <View>
                         <TouchableOpacity
-                            onPress={() => this.setState({ ["postModal" + this.state.posts[i].post_id + "Visible"]: true })}>
+                            onPress={() => this.startPostModal(this.state.posts[i].post_id)}>
                             <Text>
                                 {this.state.posts[i].author.first_name} {this.state.posts[i].author.last_name}: {this.state.posts[i].text}
                             </Text>
@@ -317,6 +319,7 @@ class Profile extends Component {
 
                         </TouchableOpacity>
                         {this.postModal(this.state.posts[i].post_id)}
+
                     </View>
                 );
 
@@ -326,40 +329,38 @@ class Profile extends Component {
         }
     }
 
+    startPostModal(postID)
+    {
+        console.log("test");
+        this.viewPost(postID);
+        this.setState({["postModal" + postID + "Visible"]: true }); 
+    }
+
     postModal(postID) {
         let modalName = "postModal" + postID + "Visible";
-        let modalVisability = null;
-        if (typeof this.state[modalName] === 'undefined') {
-            modalVisability = false;
-        }
-        else {
-            modalVisability = this.state[modalName];
-            this.viewPost(postID);
-        }
-        if(this.state.isLoadingAPost)
+        
+        if(typeof this.state[modalName] === 'undefined')
         {
-            return(
+            this.setState({[modalName]: false });
+        }
+
+        if(typeof this.state[modalName] != 'undefined'){
+        return(
             <View>
-                <Modal visible={modalVisability}
+                <Modal visible={this.state[modalName]}
                     animationType="fade"
                     transparent={true}>
 
+                    {this.state.isLoadingAPost && (
                     <View style={styles.modalView}>
                         <Text>Loading... </Text>
+                        {console.log("code loading before suposed too here")}
                         <Button title="Close" onPress={() => this.setState({ [modalName]: false })} />
                     </View>
+                    
+                    )}
 
-                </Modal>
-            </View>
-            );
-        }
-        else{
-        return (
-            <View>
-                <Modal visible={modalVisability}
-                    animationType="fade"
-                    transparent={true}>
-
+                    {!this.state.isLoadingAPost && (
                     <View style={styles.modalView}>
                         <Text>
                             {this.state.viewingPost.author.first_name} {this.state.viewingPost.author.last_name}: {this.state.viewingPost.text}
@@ -368,19 +369,25 @@ class Profile extends Component {
                         <Text>
                             Likes: {this.state.viewingPost.numLikes} Date: {this.state.viewingPost.timestamp.slice(0, 10)} Time: {this.state.viewingPost.timestamp.slice(12, 16)}
                         </Text>
-                        <Button title="Close" onPress={() => this.setState({ [modalName]: false })} />
+                        <Button title="Close" onPress={() => this.resetModal(postID)} />
                     </View>
+                    )}
 
                 </Modal>
             </View>
-        );
+        );       
         }
+    }
+
+    resetModal(postID)
+    {
+        this.setState({["postModal" + postID + "Visible"]: false});
     }
 
     async viewPost(postID) 
     {
+        this.setState({isLoadingAPost: true});
         let user = null;
-
         if (this.state.viewingUsersId == null) { user = this.state.loggedInUser; }
         else { user = this.state.viewingUsersId; }
 
@@ -405,10 +412,10 @@ class Profile extends Component {
                 }
             })
             .then((responseJson) => {
-                    this.setState({
-                        isLoadingAPost: false,
-                        viewingPost: responseJson
-                    })
+                this.setState({
+                    isLoadingAPost: false,
+                    viewingPost: responseJson
+                })
             })
             .catch((error) => {
                 console.log(error);
@@ -451,6 +458,7 @@ class Profile extends Component {
     }
 
     render() {
+        let thing;
         if (this.state.isLoading) {
             return (
                 <View
@@ -584,7 +592,8 @@ const styles = StyleSheet.create({
     {
         margin: 20,
         width: 200,
-        height: 200
+        height: 200,
+        borderRadius: 200/2
     },
     modalView:
     {
