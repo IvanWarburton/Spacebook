@@ -24,9 +24,7 @@ class Profile extends Component {
             postModalVisible: false,
             modalIsLoading: false,
             noPostsFound: true,
-            post: { text: "" },
-            counter: 0,
-
+            post: { text: "" }
         }
 
     }
@@ -331,7 +329,6 @@ class Profile extends Component {
 
     startPostModal(postID)
     {
-        console.log("test");
         this.viewPost(postID);
         this.setState({["postModal" + postID + "Visible"]: true }); 
     }
@@ -458,7 +455,6 @@ class Profile extends Component {
     }
 
     render() {
-        let thing;
         if (this.state.isLoading) {
             return (
                 <View
