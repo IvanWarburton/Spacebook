@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ScrollView, Button } from "react-native";
+import { View, Text, StyleSheet, ScrollView} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Button from "react-bootstrap/Button";
 
 class FriendRequests extends Component {
 
@@ -115,18 +116,8 @@ class FriendRequests extends Component {
 					<Text>
 						{" " + this.state.requestList[i].email}
 					</Text>
-					<Button
-						style={styles.button}
-						title="Accept Request"
-						padding="10"
-						onPress={() => this.acceptFriend(this.state.requestList[i].user_id)}
-					/>
-					<Button
-						style={styles.button}
-						title="Reject Request"
-						padding="10"
-						onPress={() => this.rejectFriend(this.state.requestList[i].user_id)}
-					/>
+					<Button onClick={() => this.acceptFriend(this.state.requestList[i].user_id)}>Accept Request</Button>
+					<Button onClick={() => this.rejectFriend(this.state.requestList[i].user_id)}>Reject Request</Button>
 				</View>
 			);
 

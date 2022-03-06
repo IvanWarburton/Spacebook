@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Button, Image } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Button from "react-bootstrap/Button";
 
 class SignIn extends Component {
 
@@ -84,17 +85,9 @@ class SignIn extends Component {
 					secureTextEntry
 				/>
 
-				<Button
-					style={styles.button}
-					title="Sign In"
-					onPress={() => this.login()}
-				/>
+				<Button onClick={() => this.login()}>Sign In</Button>
                     
-				<Button
-					style={styles.button}
-					title="Sign Up"
-					onPress={() => this.props.navigation.navigate("Sign Up")}
-				/>
+				<Button onClick={() => this.props.navigation.navigate("Sign Up")}>Sign Up</Button>
 
 			</View>
 

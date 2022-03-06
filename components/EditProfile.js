@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Button, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Camera } from "expo-camera";
+import Button from "react-bootstrap/Button";
 
 class Profile extends Component {
 
@@ -164,11 +165,7 @@ class Profile extends Component {
 						</Camera>
 
 
-						<Button
-							style={styles.button}
-							title="Cancel"
-							onPress={() => this.setState({ isEditingImage: false })}
-						/>
+						<Button onClick={() => this.setState({ isEditingImage: false })}>Cancel</Button>
 
 
 					</View>
@@ -178,11 +175,7 @@ class Profile extends Component {
 					<View>
 						<Text>No access to camera</Text>
 
-						<Button
-							style={styles.button}
-							title="Cancel"
-							onPress={() => this.setState({ isEditingImage: false })}
-						/>
+						<Button onClick={() => this.setState({ isEditingImage: false })}>Cancel</Button>
 					</View>
 				);
 			}
@@ -195,11 +188,7 @@ class Profile extends Component {
                         Edit My Information
 					</Text>
 
-					<Button
-						style={styles.button}
-						title="Update Profile Picture"
-						onPress={() => this.setState({ isEditingImage: true })}
-					/>
+					<Button onClick={() => this.setState({ isEditingImage: true })}>Update Profile Picture</Button>
 
 					<Text style={styles.mainText}>
                         First Name:
@@ -243,16 +232,8 @@ class Profile extends Component {
 					/>
 
 					<View style={styles.container2}>
-						<Button
-							style={styles.button}
-							title="Update"
-							onPress={() => this.editInfo()}
-						/>
-						<Button
-							style={styles.button}
-							title="Cancel"
-							onPress={() => this.props.navigation.navigate("Profile")}
-						/>
+						<Button onClick={() => this.editInfo()}>Update</Button>
+						<Button onClick={() => this.props.navigation.navigate("Profile")}>Cancel</Button>
 					</View>
 				</View>
 			);

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button, TextInput, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import Button from "react-bootstrap/Button";
 
 class Friends extends Component {
 
@@ -108,12 +108,7 @@ class Friends extends Component {
 					<Text>
 						{" " + this.state.searchedFriends[i].user_email}
 					</Text>
-					<Button
-						style={styles.button}
-						title="Add Friend"
-						padding="10"
-						onPress={() => this.addFriend(this.state.searchedFriends[i].user_id)}
-					/>
+					<Button onClick={() => this.addFriend(this.state.searchedFriends[i].user_id)}>Add Friend</Button>
 				</View>
 			);
 
@@ -220,12 +215,7 @@ class Friends extends Component {
 						value={this.state.search}
 					/>
 
-					<Button
-						style={styles.button}
-						title="Search"
-						padding="10"
-						onPress={() => this.searchForFriends()}
-					/>
+					<Button onClick={() => this.searchForFriends()}>Search</Button>
 
 					<ScrollView>
 						<this.searchResults />
@@ -256,12 +246,7 @@ class Friends extends Component {
 						value={this.state.search}
 					/>
 
-					<Button
-						style={styles.button}
-						title="Search"
-						padding="10"
-						onPress={() => this.searchForFriends()}
-					/>
+					<Button onClick={() => this.searchForFriends()}>Search</Button>
 
 					<ScrollView>
 						<this.searchResults />

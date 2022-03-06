@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Button, Image, Modal, ScrollView, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, Modal, ScrollView, TextInput, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Button from "react-bootstrap/Button";
 
 class Profile extends Component {
 
@@ -280,10 +281,7 @@ class Profile extends Component {
 							onChangeText={(text) => this.state.post.text = text}
 						/>
 
-						<Button
-							title="Add Post"
-							onPress={() => this.createPost()}
-						/>
+						<Button onClick={() => this.createPost()}>Add Post</Button>
 					</View>
 
 				</View>
@@ -298,10 +296,7 @@ class Profile extends Component {
 						onChangeText={(text) => this.state.post.text = text}
 					/>
 
-					<Button
-						title="Add Post"
-						onPress={() => this.createPost()}
-					/>
+					<Button onClick={() => this.createPost()}>Add Post</Button>
 				</View>);
 
 			for (let i = 0; i < this.state.posts.length; i++) {               
@@ -354,7 +349,7 @@ class Profile extends Component {
 							<View style={styles.modalView}>
 								<Text>Loading... </Text>
 								{console.log("code loading before suposed too here")}
-								<Button title="Close" onPress={() => this.setState({ [modalName]: false })} />
+								<Button onClick={() => this.setState({ [modalName]: false })}>Close</Button>
 							</View>
 						)}
 
@@ -388,17 +383,17 @@ class Profile extends Component {
 
 								{this.state.isUsersPost && (
 									<View style={styles.container2}>
-										<Button title="Close" onPress={() => this.resetModal(postID)} />
-										<Button title="Update Post" onPress={() => this.updatePost(postID)} />
-										<Button title="Delete" onPress={() => this.deletePost(postID)} />
+										<Button onClick={() => this.resetModal(postID)}>Close</Button>
+										<Button onClick={() => this.updatePost(postID)}>Update Post</Button>
+										<Button onClick={() => this.deletePost(postID)}>Delete</Button>
 									</View>
 								)}
 
 								{!this.state.isUsersPost && (
 									<View style={styles.container2}>
-										<Button title="Like" onPress={() => this.likePost(this.state.viewingPost.author.user_id, postID)} />
-										<Button title="UnLike" onPress={() => this.unLikePost(this.state.viewingPost.author.user_id, postID)} />
-										<Button title="Close" onPress={() => this.resetModal(postID)} />
+										<Button onClick={() => this.likePost(this.state.viewingPost.author.user_id, postID)}>Like</Button>
+										<Button onClick={() => this.unLikePost(this.state.viewingPost.author.user_id, postID)}>UnLike</Button>
+										<Button onClick={() => this.resetModal(postID)}>Close</Button>
 									</View>
 								)}
 
@@ -664,11 +659,8 @@ class Profile extends Component {
 				<View style={styles.container}>
 
 					{!this.state.loggedInUserViewing && (
-						<Button
-							style={styles.buttonBack}
-							title={"Back to Your Profile"}
-							onPress={() => window.location.reload(false)}
-						/>)
+						<Button onClick={() => window.location.reload(false)}>Back to Your Profile</Button>
+					)
 					}
 
 					<Image
@@ -687,27 +679,17 @@ class Profile extends Component {
 
 					{this.state.loggedInUserViewing && (
 						<View style={styles.container2}>
-							<Button
-
-								title="Edit Profile"
-								onPress={() => this.props.navigation.navigate("Edit Profile")}
-							/>
-							<Button
-
-								title={"Friends: " + this.state.listData.friend_count}
-								onPress={() => this.props.navigation.navigate("Friends")}
-							/>
-							<Button
-
-								title="Sign Out"
-								onPress={() => this.signOut()}
-							/>
+							<Button onClick={() => this.props.navigation.navigate("Edit Profile")}>Edit Profile</Button>
+							
+							<Button onClick={() => this.props.navigation.navigate("Friends")}>{"Friends: " + this.state.listData.friend_count}</Button>
+							
+							<Button onClick={() => this.signOut()}>Sign Out</Button>
 						</View>
 					)}
 
 					{!this.state.loggedInUserViewing && (
 						<View>
-							<Button title={"Friends: " + this.state.listData.friend_count} onPress={() => this.setFriendListModalVisible()} />
+							<Button onClick={() => this.setFriendListModalVisible()}>{"Friends: " + this.state.listData.friend_count}</Button>
 
 							<Modal visible={this.state.friendListModalVisible}
 								animationType="fade"
@@ -717,7 +699,7 @@ class Profile extends Component {
 
 									<this.friendsResultList />
 
-									<Button title="Close" onPress={() => this.setFriendListModalVisible()} />
+									<Button onClick={() => this.setFriendListModalVisible()}>Close</Button>
 								</View>
 
 							</Modal>
@@ -736,7 +718,7 @@ class Profile extends Component {
 							<View style={styles.alertModal}>
 								<Text>ALERT</Text>
 								<Text>{this.state.alertModalMesssage}</Text>
-								<Button title="Close" onPress={() => this.setState({ alertModalVisible: false })} />
+								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
 							</View>
 
 						</Modal>
@@ -758,7 +740,6 @@ const styles = StyleSheet.create({
     },
 	container2:
     {
-    	flex: 1,
     	flexDirection: "row",
     	justifyContent: "space-evenly"
     },
@@ -795,12 +776,6 @@ const styles = StyleSheet.create({
     	width: 200,
     	height: 200,
     	borderRadius: 200/2
-    },
-	input:
-    {
-    	margin: 40,
-    	padding: 10,
-    	width: "70%"
     },
 	modalView:
     {

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Button, TextInput, Image, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput} from "react-native";
+import Button from "react-bootstrap/Button";
 
 class SignUp extends Component {
 
@@ -119,12 +120,7 @@ class SignUp extends Component {
 					secureTextEntry
 				/>
                         
-				<Button
-					style={styles.button}
-					title="Sign Up"
-					padding="10"
-					onPress={() => this.signup()}
-				/>
+				<Button onClick={() => this.signup()}>Sign Up</Button>
 
 			</View>
 

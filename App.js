@@ -1,8 +1,10 @@
 import "react-native-gesture-handler";
 import React, { Component } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createDrawerNavigator} from "@react-navigation/drawer";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 import SignInScreen from "./components/SignIn";
 import SignUpScreen from "./components/SignUp";
@@ -12,7 +14,7 @@ import FriendsScreen from "./components/Friends";
 import FriendRequestScreen from "./components/FriendRequests";
 
 
-const Drawer = createDrawerNavigator();
+const Tab = createBottomTabNavigator();
 
 class App extends Component {
 
@@ -20,7 +22,7 @@ class App extends Component {
 
 		super(props);
 
-		this.state = {isLoggedIn: false};
+		this.state = { isLoggedIn: false };
 	}
 
 	componentDidMount() {
@@ -48,27 +50,107 @@ class App extends Component {
 
 	render() {
 
-
 		if (this.state.isLoggedIn == true) {
 			return (
 				<NavigationContainer>
-					<Drawer.Navigator initialRouteName="Profile">
-						<Drawer.Screen name="Profile" component={ProfileScreen} />
-						<Drawer.Screen name="Edit Profile" component={EditProfile} />
-						<Drawer.Screen name="Friends" component={FriendsScreen} />
-						<Drawer.Screen name="Friend Requests" component={FriendRequestScreen} />
-					</Drawer.Navigator>
-
+					<Tab.Navigator initialRouteName="Profile"
+						screenOptions={({ route }) => ({
+							headerShown: false,
+							tabBarOptions: { style: { backgroundColor: "#ff11ff" } },
+							tabBarIcon: ({ focused, color, size }) => {
+								if (route.name === "Profile") {
+									return (
+										<Ionicons
+											name={focused
+												? "person-circle"
+												: "person-circle-outline"
+											}
+											size={size}
+											color={color} />
+									);
+								} else if (route.name === "Edit Profile") {
+									return (
+										<Ionicons
+											name={focused
+												? "create"
+												: "create-outline"
+											}
+											size={size}
+											color={color}
+										/>
+									);
+								} else if (route.name === "Friends") {
+									return (
+										<Ionicons
+											name={focused
+												? "people-circle"
+												: "people-circle-outline"
+											}
+											size={size}
+											color={color}
+										/>
+									);
+								} else if (route.name === "Friend Requests") {
+									return (
+										<Ionicons
+											name={focused
+												? "person-add"
+												: "person-add-outline"
+											}
+											size={size}
+											color={color}
+										/>
+									);
+								}
+							},
+							tabBarInactiveTintColor: "gray",
+							tabBarActiveTintColor: "black",
+						})}>
+						<Tab.Screen name="Profile" component={ProfileScreen} />
+						<Tab.Screen name="Edit Profile" component={EditProfile} />
+						<Tab.Screen name="Friends" component={FriendsScreen} />
+						<Tab.Screen name="Friend Requests" component={FriendRequestScreen} />
+					</Tab.Navigator>
 				</NavigationContainer>
 			);
 		}
 		else {
 			return (
 				<NavigationContainer>
-					<Drawer.Navigator initialRouteName="Sign In">
-						<Drawer.Screen name="Sign In" component={SignInScreen} />
-						<Drawer.Screen name="Sign Up" component={SignUpScreen} />
-					</Drawer.Navigator>
+					<Tab.Navigator initialRouteName="Sign In"
+						screenOptions={({ route }) => ({
+							headerShown: false,
+							tabBarOptions: { style: { backgroundColor: "#ff11ff" } },
+							tabBarIcon: ({ focused, color, size }) => {
+								if (route.name === "Sign In") {
+									return (
+										<Ionicons
+											name={focused
+												? "log-in"
+												: "log-in-outline"
+											}
+											size={size}
+											color={color} />
+									);
+								} else if (route.name === "Sign Up") {
+									return (
+										<Ionicons
+											name={focused
+												? "create"
+												: "create-outline"
+											}
+											size={size}
+											color={color}
+										/>
+									);
+								}
+							},
+							tabBarInactiveTintColor: "gray",
+							tabBarActiveTintColor: "black",
+						})}>
+						<Tab.Screen name="Sign In" component={SignInScreen} />
+						<Tab.Screen name="Sign Up" component={SignUpScreen} />
+					</Tab.Navigator>
 				</NavigationContainer>
 			);
 		}
