@@ -2,5 +2,5 @@
 
 Using default packages plus: 
 
-bootstrap@5.1.3
+bootstrap@5.1.3,
 ESLint
