@@ -1,155 +1,151 @@
-import React, { Component } from 'react';
-import { View, Text, StyleSheet, Button, Image } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { Component } from "react";
+import { View, Text, StyleSheet, Button, Image } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 class SignIn extends Component {
 
-    constructor(props){
-        super(props);
+	constructor(props){
+		super(props);
 
-        this.state = 
-        {
-            email: "",
-            password: ""
-        }
-    }
+		this.state = {email: "", password: ""};
+	}
 
-    login = async () => 
-    {
-        return fetch("http://localhost:3333/api/1.0.0/login", 
-        {
-            method: 'post',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(this.state)
-        }
-        )
+	login = async () => 
+	{
+		return fetch("http://localhost:3333/api/1.0.0/login", 
+			{
+				method: "post",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify(this.state)
+			}
+		)
 
-        .then((response) =>
-        {
-            if(response.status === 200){
-                return response.json()
-            }else if(response.status === 400){
-                throw 'Invalid email or password';
-            }else{
-                throw 'Something went wrong';
-            }
-        })
+			.then((response) =>
+			{
+				if(response.status === 200){
+					return response.json();
+				}else if(response.status === 400){
+					throw "Invalid email or password";
+				}else{
+					throw "Something went wrong";
+				}
+			})
 
-        .then(async (responseJson) => 
-        {
-            console.log(responseJson);
-            await AsyncStorage.setItem('@session_token', responseJson.token);
-            await AsyncStorage.setItem('@user_id', responseJson.id);
-            window.location.reload(false);
-            console.log("Logged In")
-        })
+			.then(async (responseJson) => 
+			{
+				console.log(responseJson);
+				await AsyncStorage.setItem("@session_token", responseJson.token);
+				await AsyncStorage.setItem("@user_id", responseJson.id);
+				window.location.reload(false);
+				console.log("Logged In");
+			})
 
-        .catch((error) => 
-        {
-            console.log(error);
-        })
-    }
+			.catch((error) => 
+			{
+				console.log(error);
+			});
+	};
 
 
-    render() {
-        return (
-            <View style={styles.container}>
+	render() {
+		return (
+			<View style={styles.container}>
 
-                <View style={styles.container2}>
+				<View style={styles.container2}>
 
-                    <Image 
-                        style={styles.logo}
-                        source={require('../assets/Spacebook_Icon.png')} 
-                    />
+					<Image 
+						style={styles.logo}
+						source={require("../assets/Spacebook_Icon.png")} 
+					/>
                     
-                    <Text style={styles.mainTitle}>
+					<Text style={styles.mainTitle}>
                         SpaceBook
-                    </Text>
+					</Text>
 
-                </View>
+				</View>
 
-                <Text style={styles.mainText}>
+				<Text style={styles.mainText}>
                     Sign up or Sign in to your Spacebook acount.
-                </Text>
+				</Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    onChangeText={(email) => this.setState({email})}
-                    value={this.state.email}
-                />
+				<TextInput
+					style={styles.input}
+					placeholder="Email"
+					onChangeText={(email) => this.setState({email})}
+					value={this.state.email}
+				/>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    onChangeText={(password) => this.setState({password})}
-                    value={this.state.password}
-                    secureTextEntry
-                />
+				<TextInput
+					style={styles.input}
+					placeholder="Password"
+					onChangeText={(password) => this.setState({password})}
+					value={this.state.password}
+					secureTextEntry
+				/>
 
-                <Button
-                    style={styles.button}
-                    title="Sign In"
-                    onPress={() => this.login()}
-                />
+				<Button
+					style={styles.button}
+					title="Sign In"
+					onPress={() => this.login()}
+				/>
                     
-                <Button
-                    style={styles.button}
-                    title="Sign Up"
-                    onPress={() => this.props.navigation.navigate("Sign Up")}
-                />
+				<Button
+					style={styles.button}
+					title="Sign Up"
+					onPress={() => this.props.navigation.navigate("Sign Up")}
+				/>
 
-            </View>
+			</View>
 
-        )
-    }
+		);
+	}
 }
 
 const styles = StyleSheet.create({
-    container:
+	container:
     {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: 'space-evenly',
-        alignItems: 'center'
+    	flex: 1,
+    	flexDirection: "column",
+    	justifyContent: "space-evenly",
+    	alignItems: "center"
     },
-    container2:
+	container2:
     {
-        flexDirection: "row",
-        justifyContent: 'space-evenly'
+    	flexDirection: "row",
+    	justifyContent: "space-evenly"
     },
-    mainTitle:
+	mainTitle:
     {
-        fontSize: 40,
-        fontWeight: 'bold'
+    	fontSize: 40,
+    	fontWeight: "bold"
     },
-    mainText:
+	mainText:
     {
-        fontSize: 20,
-        padding: 10,
-        fontWeight: 'bold'
+    	fontSize: 20,
+    	padding: 10,
+    	fontWeight: "bold"
     },
-    button:
+	button:
     {
-        padding: 10
+    	padding: 10
     },
-    input:
+	input:
     {
-        margin: 40,
-        padding: 10,
-        width: '70%'
+    	margin: 40,
+    	padding: 10,
+    	width: "70%"
     },
-    space:
+	space:
     {
-        width: 20,
-        height: 20
+    	width: 20,
+    	height: 20
     },
-    logo:
+	logo:
     {
-        width: 100,
-        height: 100,
-        resizeMode: 'contain'
+    	width: 100,
+    	height: 100,
+    	resizeMode: "contain"
     }
 });
 
