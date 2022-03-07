@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ScrollView} from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Button from "react-bootstrap/Button";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 class FriendRequests extends Component {
 
@@ -40,6 +40,7 @@ class FriendRequests extends Component {
 					isLoadingData: false,
 					requestList: responseJson
 				});
+				this.getProfilePictures();
 			})
 			.catch((error) => {
 				console.log(error);
@@ -104,29 +105,6 @@ class FriendRequests extends Component {
 			});
 	}
 
-	displayResults = () => {
-		let searchResults = [];
-
-		for (let i = 0; i < this.state.requestList.length; i++) {
-			searchResults.push(
-				<View style={styles.container2}>
-					<Text>
-						{this.state.requestList[i].first_name + " " + this.state.requestList[i].last_name}
-					</Text>
-					<Text>
-						{" " + this.state.requestList[i].email}
-					</Text>
-					<Button onClick={() => this.acceptFriend(this.state.requestList[i].user_id)}>Accept Request</Button>
-					<Button onClick={() => this.rejectFriend(this.state.requestList[i].user_id)}>Reject Request</Button>
-				</View>
-			);
-
-		}
-
-		return searchResults;
-
-	};
-
 
 	render() {
 		if (this.state.isLoadingData) {
@@ -146,16 +124,26 @@ class FriendRequests extends Component {
 			return (
 				<View style={styles.container}>
 
-					<View style={styles.container2}>
+					<Text style={styles.mainTitle}>
+						SpaceBook Friend Requests
+					</Text>
 
-						<Text style={styles.mainTitle}>
-                            SpaceBook Friend Requests
-						</Text>
-					</View>
 
-					<ScrollView>
-						<this.displayResults />
-					</ScrollView>
+					<FlatList
+						data={this.state.requestList}
+						renderItem={({ item }) =>
+							<View style={styles.container2}>
+
+								<Text style={styles.mainText}>
+									{item.first_name + " " + item.last_name}
+								</Text>
+
+								<Ionicons name="person-add" style={styles.icon} onPress={() => this.acceptFriend(item.user_id)}></Ionicons>
+
+								<Ionicons name="person-remove" style={styles.icon} onPress={() => this.rejectFriend(item.user_id)}></Ionicons>
+							</View>
+						}
+					/>
 
 				</View>
 			);
@@ -167,13 +155,13 @@ class FriendRequests extends Component {
 					<View style={styles.container2}>
 
 						<Text style={styles.mainTitle}>
-                            SpaceBook Friends  Requests
+							SpaceBook Friends  Requests
 						</Text>
 					</View>
 
 
 					<Text style={styles.mainText}>
-                        It doesnt look like you have any friends requests at this time.
+						It doesnt look like you have any friends requests at this time.
 					</Text>
 
 				</View>
@@ -184,40 +172,48 @@ class FriendRequests extends Component {
 
 const styles = StyleSheet.create({
 	container:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		width: "100%",
+		padding: 10
+	},
 	container2:
-    {
-    	flexDirection: "row",
-    	justifyContent: "space-evenly"
-    },
+	{
+		flexDirection: "row",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		width: "100%",
+		margin: 10,
+	},
 	mainTitle:
-    {
-    	fontSize: 40,
-    	fontWeight: "bold",
-    	textAlign: "center"
-    },
+	{
+		fontSize: 40,
+		fontWeight: "bold",
+		textAlign: "center"
+	},
 	mainText:
-    {
-    	fontSize: 20,
-    	fontWeight: "bold",
-    	textAlign: "center",
-    	margin: 40
-    },
+	{
+		flex: 1,
+		fontSize: 15,
+		fontWeight: "bold"
+	},
 	button:
-    {
-    	padding: 10
-    },
+	{
+		padding: 10
+	},
 	input:
-    {
-    	margin: 40,
-    	padding: 10,
-    	width: "70%"
-    }
+	{
+		margin: 40,
+		padding: 10,
+		width: "70%"
+	},
+	icon:
+	{
+		fontSize: "200%"
+	}
 });
 
 export default FriendRequests;

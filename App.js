@@ -22,10 +22,18 @@ class App extends Component {
 
 		super(props);
 
-		this.state = { isLoggedIn: false };
+		this.state = { 
+			isLoggedIn: false,
+			viewingUsersId: null,
+			profileIcon: "person-circle"
+		};
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
+		this.setState({viewingUsersId: await AsyncStorage.getItem("@viewing_user_id")});
+		if (this.state.viewingUsersId != null) {
+			this.setState({ profileIcon: "people-circle" });
+		}
 		this.Login();
 	}
 
@@ -62,8 +70,8 @@ class App extends Component {
 									return (
 										<Ionicons
 											name={focused
-												? "person-circle"
-												: "person-circle-outline"
+												? (this.state.profileIcon)
+												: ((this.state.profileIcon)+"-outline")
 											}
 											size={size}
 											color={color} />
@@ -83,8 +91,8 @@ class App extends Component {
 									return (
 										<Ionicons
 											name={focused
-												? "people-circle"
-												: "people-circle-outline"
+												? "people"
+												: "people-outline"
 											}
 											size={size}
 											color={color}

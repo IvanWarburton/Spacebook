@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "react-bootstrap/Button";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 class Friends extends Component {
 
@@ -12,20 +13,40 @@ class Friends extends Component {
 			isLoadingData: true,
 			friendList: [],
 			searchedFriends: [],
-			search: ""
+			search: "",
+			sessionToken: null,
+			userId: null
 		};
 	}
 
 	async componentDidMount() {
+		this.setState({
+			sessionToken: await AsyncStorage.getItem("@session_token"),
+			userId: await AsyncStorage.getItem("@user_id"),
+		});
 		this.getFriends();
 	}
+	
+	getProfilePictures = async () => {
+		for (let i = 0; i < this.state.friendList.length; i++) {
+			
+			fetch("http://localhost:3333/api/1.0.0/user/" + this.state.friendList[i].user_id + "/photo",
+				{ headers: { "X-Authorization": this.state.sessionToken } })
+				.then((res) => { return res.blob(); })
+				.then((resBlob) => {
+					let data = URL.createObjectURL(resBlob);
+					this.state.friendList[i].user_pic = data;
+				})
+				.catch((err) => {
+					console.log("error", err);
+				});
+		}
+	};
 
 	getFriends = async () => {
-		const SessionToken = await AsyncStorage.getItem("@session_token");
-		const UserId = await AsyncStorage.getItem("@user_id");
-		return fetch("http://localhost:3333/api/1.0.0/user/" + UserId + "/friends", {
+		return fetch("http://localhost:3333/api/1.0.0/user/" + this.state.userId + "/friends", {
 			"headers": {
-				"X-Authorization": SessionToken
+				"X-Authorization": this.state.sessionToken
 			}
 		})
 			.then((response) => {
@@ -42,6 +63,7 @@ class Friends extends Component {
 					isLoadingData: false,
 					friendList: responseJson
 				});
+				this.getProfilePictures();
 			})
 			.catch((error) => {
 				console.log(error);
@@ -51,11 +73,9 @@ class Friends extends Component {
 	searchForFriends = async () => {
 		this.setState({ isLoadingData: true });
 
-		const SessionToken = await AsyncStorage.getItem("@session_token");
-
-		return fetch("http://localhost:3333/api/1.0.0/search?q=" + this.state.search + "&limit=20", {
+		return fetch("http://localhost:3333/api/1.0.0/search?q=" + this.state.search, {
 			"headers": {
-				"X-Authorization": SessionToken
+				"X-Authorization": this.state.sessionToken
 			}
 		})
 			.then((response) => {
@@ -72,19 +92,16 @@ class Friends extends Component {
 					isLoadingData: false,
 					searchedFriends: responseJson
 				});
+				this.filterSearchResults();
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
 
-	searchResults = () => {
-		let UserId = AsyncStorage.getItem("@user_id");
-
+	filterSearchResults = () => {
 		for (let i = 0; i < this.state.searchedFriends.length; i++) {
-			console.log(UserId);
-			console.log(this.state.searchedFriends[i].user_id);
-			if (this.state.searchedFriends[i].user_id == UserId) {
+			if (this.state.searchedFriends[i].user_id == this.state.userId) {
 				this.state.searchedFriends.splice(i, 1);
 			}
 		}
@@ -96,50 +113,6 @@ class Friends extends Component {
 				}
 			}
 		}
-
-		let searchResults = [];
-
-		for (let i = 0; i < this.state.searchedFriends.length; i++) {
-			searchResults.push(
-				<View style={styles.container2}>
-					<Text>
-						{this.state.searchedFriends[i].user_givenname + " " + this.state.searchedFriends[i].user_familyname}
-					</Text>
-					<Text>
-						{" " + this.state.searchedFriends[i].user_email}
-					</Text>
-					<Button onClick={() => this.addFriend(this.state.searchedFriends[i].user_id)}>Add Friend</Button>
-				</View>
-			);
-
-		}
-
-		return searchResults;
-
-	};
-
-	friendsResultList = () => {
-		let Friends = [];
-
-		for (let i = 0; i < this.state.friendList.length; i++) {
-			Friends.push(
-				<TouchableOpacity
-					style={styles.container2}
-					onPress={() => this.goto(this.state.friendList[i].user_id)}
-				>
-					<Text>
-						{this.state.friendList[i].user_givenname + " " + this.state.friendList[i].user_familyname}
-					</Text>
-					<Text>
-						{" " + this.state.friendList[i].user_email}
-					</Text>
-				</TouchableOpacity>
-			);
-
-		}
-
-		return Friends;
-
 	};
 
 	async goto(userID)
@@ -149,12 +122,10 @@ class Friends extends Component {
 	}
 
 	async addFriend(firendID) {
-		const SessionToken = await AsyncStorage.getItem("@session_token");
-
 		return fetch("http://localhost:3333/api/1.0.0/user/" + firendID + "/friends", {
 			method: "post",
 			headers: {
-				"X-Authorization": SessionToken
+				"X-Authorization": this.state.sessionToken
 			}
 		})
 			.then((response) => {
@@ -204,9 +175,23 @@ class Friends extends Component {
 						</Text>
 					</View>
 
-					<ScrollView>
-						{this.friendsResultList(this)}
-					</ScrollView>
+					<FlatList
+						data = {this.state.friendList}
+						renderItem={({item}) => 
+							<TouchableOpacity
+								style={styles.container2}
+								onPress={() => this.goto(item.user_id)}
+							>
+								<Image
+									style={styles.friendPics}
+									source={{ uri: item.user_pic }}
+								/>
+								<Text>
+									{item.user_givenname + " " + item.user_familyname}
+								</Text>
+							</TouchableOpacity>
+						}
+					/>
 
 					<TextInput
 						style={styles.input}
@@ -216,10 +201,18 @@ class Friends extends Component {
 					/>
 
 					<Button onClick={() => this.searchForFriends()}>Search</Button>
-
-					<ScrollView>
-						<this.searchResults />
-					</ScrollView>
+						
+					<FlatList
+						data = {this.state.searchedFriends}
+						renderItem={({item}) => 
+							<View style={styles.container2}>
+								<Text>
+									{item.user_givenname + " " + item.user_familyname}
+								</Text>
+								<Ionicons name="person-add" style={styles.icon} onPress={() => this.addFriend(item.user_id)}></Ionicons>
+							</View>
+						}
+					/>
 
 				</View>
 			);
@@ -247,12 +240,20 @@ class Friends extends Component {
 					/>
 
 					<Button onClick={() => this.searchForFriends()}>Search</Button>
+	
+					<FlatList
+						data = {this.state.searchedFriends}
+						renderItem={({item}) => 
+							<View>
+								<Text>
+									{item.user_givenname + " " + item.user_familyname}
+								</Text>
 
-					<ScrollView>
-						<this.searchResults />
-					</ScrollView>
-
-
+								<Ionicons name="person-add" style={styles.icon} onPress={() => this.addFriend(item.user_id)}></Ionicons>
+							</View>
+						}
+					/>
+						
 				</View>
 			);
 		}
@@ -271,6 +272,7 @@ const styles = StyleSheet.create({
     {
     	flexDirection: "row",
     	justifyContent: "space-evenly",
+    	alignItems: "center",
     	margin: 20
     },
 	mainTitle:
@@ -291,11 +293,22 @@ const styles = StyleSheet.create({
     	padding: 10
     },
 	input:
-    {
+    {	
     	margin: 40,
     	padding: 10,
     	width: "70%"
-    }
+    },
+	icon:
+	{
+		fontSize: "200%"
+	},
+	friendPics:
+	{
+		margin: 10, 
+		width: 50,
+		height: 50,
+		borderRadius: 50 / 2
+	},
 });
 
 export default Friends;

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Image, Modal, ScrollView, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Image, Modal, TextInput, TouchableOpacity, FlatList } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "react-bootstrap/Button";
 
@@ -108,6 +108,7 @@ class Profile extends Component {
 		let token = await AsyncStorage.getItem("@session_token");
 		await AsyncStorage.removeItem("@session_token");
 		await AsyncStorage.removeItem("@user_id");
+		await AsyncStorage.removeItem("@viewing_user_id");
 		return fetch("http://localhost:3333/api/1.0.0/logout", {
 			method: "post",
 			headers: {
@@ -161,44 +162,6 @@ class Profile extends Component {
 			});
 	}
 
-	friendsResultList = () => {
-
-		let Friends = [];
-
-		if (this.state.modalIsLoading) {
-			return (
-				<View
-					style={{
-						flex: 1,
-						flexDirection: "column",
-						justifyContent: "center",
-						alignItems: "center",
-					}}>
-					<Text>Loading..</Text>
-				</View>
-			);
-		}
-		else {
-
-			for (let i = 0; i < this.state.friendsFriendList.length; i++) {
-				Friends.push(
-					<View>
-						<Text>
-							{this.state.friendsFriendList[i].user_givenname + " " + this.state.friendsFriendList[i].user_familyname}
-						</Text>
-						<Text>
-							{this.state.friendsFriendList[i].user_email}
-						</Text>
-					</View>
-				);
-
-			}
-
-			return Friends;
-		}
-
-	};
-
 	getPosts = async () => {
 		let user = null;
 
@@ -248,8 +211,7 @@ class Profile extends Component {
 	};
 
 	postLists = () => {
-		let Posts = [];
-        
+
 		if (this.state.isLoadingPosts) {
 			return (
 				<View
@@ -273,73 +235,53 @@ class Profile extends Component {
 						alignItems: "center",
 					}}>
 					<Text>There are no posts at this time.</Text>
-
-					<View style={styles.container2}>
-						<TextInput
-							style={styles.input}
-							placeholder="Add Post"
-							onChangeText={(text) => this.state.post.text = text}
-						/>
-
-						<Button onClick={() => this.createPost()}>Add Post</Button>
-					</View>
-
 				</View>
 			);
 		}
 		else {
-			Posts.push(
-				<View style={styles.container2}>
-					<TextInput
-						style={styles.input}
-						placeholder="Add Post"
-						onChangeText={(text) => this.state.post.text = text}
-					/>
+			return (
+				<FlatList
+					data={this.state.posts}
+					renderItem={({ item }) =>
+						<View>
+							<TouchableOpacity
+								onPress={() => this.startPostModal(item.post_id)}
+								style={styles.postContainer}>
 
-					<Button onClick={() => this.createPost()}>Add Post</Button>
-				</View>);
+								<Text style={styles.postText}>
+									{item.author.first_name} {item.author.last_name}: {item.text}
+								</Text>
 
-			for (let i = 0; i < this.state.posts.length; i++) {               
-				Posts.push(
-					<View>
-						<TouchableOpacity
-							onPress={() => this.startPostModal(this.state.posts[i].post_id)}>
-							<Text>
-								{this.state.posts[i].author.first_name} {this.state.posts[i].author.last_name}: {this.state.posts[i].text}
-							</Text>
+								<Text style={styles.postText}>
+									Likes: {item.numLikes} Date: {item.timestamp.slice(0, 10)} Time: {item.timestamp.slice(12, 16)} 
+								</Text>
 
-							<Text>
-                                Likes: {this.state.posts[i].numLikes} Date: {this.state.posts[i].timestamp.slice(0, 10)} Time: {this.state.posts[i].timestamp.slice(12, 16)}
-							</Text>
+							</TouchableOpacity>
+							{this.postModal(item.post_id)}
 
-						</TouchableOpacity>
-						{this.postModal(this.state.posts[i].post_id)}
+						</View>
+					}
+				/>
 
-					</View>
-				);
-
-			}
-
-			return Posts;
+			);
 		}
+
 	};
 
-	startPostModal(postID)
-	{
+	startPostModal(postID) {
 		this.viewPost(postID);
-		this.setState({["postModal" + postID + "Visible"]: true }); 
+		this.setState({ ["postModal" + postID + "Visible"]: true });
 	}
 
 	postModal(postID) {
 		let modalName = "postModal" + postID + "Visible";
-        
-		if(typeof this.state[modalName] === "undefined")
-		{
-			this.setState({[modalName]: false });
+
+		if (typeof this.state[modalName] === "undefined") {
+			this.setState({ [modalName]: false });
 		}
 
-		if(typeof this.state[modalName] != "undefined"){
-			return(
+		if (typeof this.state[modalName] != "undefined") {
+			return (
 				<View>
 					<Modal visible={this.state[modalName]}
 						animationType="fade"
@@ -355,7 +297,7 @@ class Profile extends Component {
 
 						{!this.state.isLoadingAPost && (
 							<View style={styles.modalView}>
-                        
+
 								{!this.state.isUsersPost && (
 									<View>
 										<Text>
@@ -363,7 +305,7 @@ class Profile extends Component {
 										</Text>
 
 										<Text>
-                                Likes: {this.state.viewingPost.numLikes} Date: {this.state.viewingPost.timestamp.slice(0, 10)} Time: {this.state.viewingPost.timestamp.slice(12, 16)}
+											Likes: {this.state.viewingPost.numLikes} Date: {this.state.viewingPost.timestamp.slice(0, 10)} Time: {this.state.viewingPost.timestamp.slice(12, 16)}
 										</Text>
 									</View>
 								)}
@@ -371,11 +313,11 @@ class Profile extends Component {
 								{this.state.isUsersPost && (
 									<View>
 										<Text>
-											{this.state.viewingPost.author.first_name} {this.state.viewingPost.author.last_name}: 
+											{this.state.viewingPost.author.first_name} {this.state.viewingPost.author.last_name}:
 										</Text>
 										<TextInput
 											style={styles.input}
-											placeholder= {this.state.viewingPost.text}
+											placeholder={this.state.viewingPost.text}
 											onChangeText={(post) => this.state.viewingPost.text = post}
 										/>
 									</View>
@@ -402,19 +344,17 @@ class Profile extends Component {
 
 					</Modal>
 				</View>
-			);       
+			);
 		}
 	}
 
-	resetModal(postID)
-	{
-		this.setState({["postModal" + postID + "Visible"]: false});
-		this.setState({isUsersPost: false});
+	resetModal(postID) {
+		this.setState({ ["postModal" + postID + "Visible"]: false });
+		this.setState({ isUsersPost: false });
 	}
 
-	async viewPost(postID) 
-	{
-		this.setState({isLoadingAPost: true});
+	async viewPost(postID) {
+		this.setState({ isLoadingAPost: true });
 		let user = null;
 		if (this.state.viewingUsersId == null) { user = this.state.loggedInUser; }
 		else { user = this.state.viewingUsersId; }
@@ -444,8 +384,7 @@ class Profile extends Component {
 					isLoadingAPost: false,
 					viewingPost: responseJson
 				});
-				if(this.state.viewingPost.author.user_id == this.state.loggedInUser)
-				{this.setState({isUsersPost: true});}
+				if (this.state.viewingPost.author.user_id == this.state.loggedInUser) { this.setState({ isUsersPost: true }); }
 			})
 			.catch((error) => {
 				console.log(error);
@@ -461,7 +400,7 @@ class Profile extends Component {
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post", {
 			method: "post",
-			headers:{"Content-Type": "application/json","X-Authorization": this.state.sessionToken},
+			headers: { "Content-Type": "application/json", "X-Authorization": this.state.sessionToken },
 			body: JSON.stringify(this.state.post)
 		})
 			.then((response) => {
@@ -488,18 +427,18 @@ class Profile extends Component {
 
 		if (this.state.viewingUsersId == null) { user = this.state.loggedInUser; }
 		else { user = this.state.viewingUsersId; }
-   
-		this.setState({isLoadingPosts: true });
+
+		this.setState({ isLoadingPosts: true });
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post/" + postID, {
 			method: "PATCH",
-			headers:{"Content-Type": "application/json","X-Authorization": this.state.sessionToken},
+			headers: { "Content-Type": "application/json", "X-Authorization": this.state.sessionToken },
 			body: JSON.stringify(this.state.viewingPost)
 		})
 			.then((response) => {
 				if (response.status === 200) {
 					console.log("Updated");
-					this.setState({["postModal" + postID + "Visible"]: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 400) {
 					console.log("Bad Request");
@@ -526,12 +465,12 @@ class Profile extends Component {
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post/" + postID, {
 			method: "DELETE",
-			headers:{"X-Authorization": this.state.sessionToken}
+			headers: { "X-Authorization": this.state.sessionToken }
 		})
 			.then((response) => {
 				if (response.status === 200) {
 					console.log("Post Delete");
-					this.setState({["postModal" + postID + "Visible"]: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 401) {
 					console.log("Unauthorised");
@@ -555,32 +494,32 @@ class Profile extends Component {
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + postUser + "/post/" + postID + "/like", {
 			method: "POST",
-			headers:{"X-Authorization": this.state.sessionToken}
+			headers: { "X-Authorization": this.state.sessionToken }
 		})
 			.then((response) => {
 				if (response.status === 200) {
 					console.log("Post Liked");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.getPosts();
 				} else if (response.status === 400) {
 					console.log("Bad Request. You may have already liked this post.");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Bad Request. You may have already liked this post.");
 				} else if (response.status === 401) {
 					console.log("Unauthorised");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Unauthorised");
 				} else if (response.status === 403) {
 					console.log("You have already liked the post");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("You have already liked the post or you are not friends with this person.");
 				} else if (response.status === 404) {
 					console.log("Not found");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Not found");
 				} else if (response.status === 500) {
 					console.log("Server Error");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Server Error");
 				} else {
 					throw "Something went wrong";
@@ -596,32 +535,32 @@ class Profile extends Component {
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + postUser + "/post/" + postID + "/like", {
 			method: "DELETE",
-			headers:{"X-Authorization": this.state.sessionToken}
+			headers: { "X-Authorization": this.state.sessionToken }
 		})
 			.then((response) => {
 				if (response.status === 200) {
 					console.log("Post UnLiked");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.getPosts();
 				} else if (response.status === 400) {
 					console.log("Bad Request. You may have already Unliked this post.");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Bad Request. You may have already Unliked this post.");
 				} else if (response.status === 401) {
 					console.log("Unauthorised");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Unauthorised");
 				} else if (response.status === 403) {
 					console.log("You have not liked this post");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("You have not liked this post or you are not friends with this person.");
 				} else if (response.status === 404) {
 					console.log("Not found");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Not found");
 				} else if (response.status === 500) {
 					console.log("Server Error");
-					this.setState({["postModal" + postID + "Visible"]: false, isLoadingPosts: false});
+					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Server Error");
 				} else {
 					throw "Something went wrong";
@@ -632,8 +571,7 @@ class Profile extends Component {
 			});
 	}
 
-	alertMessage(message)
-	{
+	alertMessage(message) {
 		this.setState({
 			alertModalVisible: true,
 			alertModalMesssage: message
@@ -660,8 +598,7 @@ class Profile extends Component {
 
 					{!this.state.loggedInUserViewing && (
 						<Button onClick={() => window.location.reload(false)}>Back to Your Profile</Button>
-					)
-					}
+					)}
 
 					<Image
 						style={styles.logo}
@@ -674,15 +611,15 @@ class Profile extends Component {
 
 
 					<Text style={styles.mainText}>
-                        Email: {this.state.listData.email}
+						Email: {this.state.listData.email}
 					</Text>
 
 					{this.state.loggedInUserViewing && (
 						<View style={styles.container2}>
 							<Button onClick={() => this.props.navigation.navigate("Edit Profile")}>Edit Profile</Button>
-							
+
 							<Button onClick={() => this.props.navigation.navigate("Friends")}>{"Friends: " + this.state.listData.friend_count}</Button>
-							
+
 							<Button onClick={() => this.signOut()}>Sign Out</Button>
 						</View>
 					)}
@@ -697,7 +634,33 @@ class Profile extends Component {
 
 								<View style={styles.modalView}>
 
-									<this.friendsResultList />
+									{this.state.modalIsLoading && (
+										<View
+											style={{
+												flex: 1,
+												flexDirection: "column",
+												justifyContent: "center",
+												alignItems: "center",
+											}}>
+											<Text style={styles.mainText}>Loading..</Text>
+										</View>
+									)}
+
+									{!this.state.modalIsLoading && (
+										<FlatList
+											data={this.state.friendsFriendList}
+											renderItem={({ item }) =>
+												<View>
+													<Text style={styles.mainText}>
+														{item.user_givenname + " " + item.user_familyname}
+													</Text>
+													<Text style={styles.mainText}>
+														{item.user_email}
+													</Text>
+												</View>
+											}
+										/>
+									)}
 
 									<Button onClick={() => this.setFriendListModalVisible()}>Close</Button>
 								</View>
@@ -706,9 +669,19 @@ class Profile extends Component {
 						</View>
 					)}
 
-					<ScrollView style={styles.thing}>
-						<this.postLists />
-					</ScrollView>
+					<View style={styles.container2}>
+						<TextInput
+							style={styles.input}
+							multiline={true}
+							numberOfLines={3}
+							placeholder="Add Post"
+							onChangeText={(text) => this.state.post.text = text}
+						/>
+
+						<Button onClick={() => this.createPost()}>Add Post</Button>
+					</View>
+
+					<this.postLists />
 
 					<View>
 						<Modal visible={this.state.alertModalVisible}
@@ -732,87 +705,93 @@ class Profile extends Component {
 
 const styles = StyleSheet.create({
 	container:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center"
+	},
 	container2:
-    {
-    	flexDirection: "row",
-    	justifyContent: "space-evenly"
-    },
-	thing:
-    {
-    	padding: 10
-    },
+	{
+		flexDirection: "row",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		width: "100%",
+		margin: 10,
+	},
 	mainTitle:
-    {
-    	flex: 1,
-    	fontSize: 40,
-    	fontWeight: "bold",
-    	padding: 10
-    },
+	{
+		flex: 1,
+		fontSize: 40,
+		fontWeight: "bold"
+	},
 	mainText:
-    {
-    	flex: 1,
-    	fontSize: 20,
-    	fontWeight: "bold",
-    	padding: 10
-    },
-	button:
-    {
-    	flex: 1,
-    	justifyContent: "flex-start"
-    },
-	buttonBack:
-    {
-    	padding: 10
-    },
+	{
+		flex: 1,
+		fontSize: 15,
+		fontWeight: "bold"
+	},
+	postContainer:
+	{
+		padding: 10,
+	},
+	postText:
+	{
+		fontSize: 15,
+		fontWeight: "bold",
+		width: "100%"
+	},
 	logo:
-    {
-    	margin: 20,
-    	width: 200,
-    	height: 200,
-    	borderRadius: 200/2
-    },
+	{
+		margin: 10, 
+		width: 200,
+		height: 200,
+		borderRadius: 200 / 2
+	},
+	input:
+	{
+		padding: 10,
+		fontSize: 15,
+		fontWeight: "bold",
+		width: "70%",
+		borderRadius: 20,
+	},
 	modalView:
-    {
-    	flex: 1,
-    	margin: 20,
-    	marginVertical: "80%",
-    	backgroundColor: "white",
-    	borderRadius: 20,
-    	padding: 35,
-    	alignItems: "center",
-    	shadowColor: "#000",
-    	shadowOffset: {
-    		width: 0,
-    		height: 2
-    	},
-    	shadowOpacity: 0.25,
-    	shadowRadius: 4,
-    	elevation: 1
-    },
+	{
+		flex: 1,
+		margin: 20,
+		marginVertical: "80%",
+		backgroundColor: "white",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 1
+	},
 	alertModal:
-    {
-    	flex: 1,
-    	margin: 20,
-    	marginVertical: "90%",
-    	backgroundColor: "#ffd4d8",
-    	borderRadius: 20,
-    	padding: 35,
-    	alignItems: "center",
-    	shadowColor: "#000",
-    	shadowOffset: {
-    		width: 0,
-    		height: 2
-    	},
-    	shadowOpacity: 0.25,
-    	shadowRadius: 4,
-    	elevation: 5
-    }
+	{
+		flex: 1,
+		margin: 20,
+		marginVertical: "90%",
+		backgroundColor: "#ffd4d8",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5
+	}
 });
 
 export default Profile;

@@ -252,7 +252,10 @@ const styles = StyleSheet.create({
 	container2:
     {
     	flexDirection: "row",
-    	justifyContent: "space-evenly"
+    	justifyContent: "space-evenly",
+    	alignItems: "center",
+    	width: "100%",
+    	margin: 10,
     },
 	mainTitle:
     {
@@ -272,7 +275,9 @@ const styles = StyleSheet.create({
     {
     	margin: 40,
     	padding: 10,
-    	width: "70%"
+    	fontWeight: "bold",
+    	width: "80%",
+    	borderRadius: 20,
     },
 	camContainer:
     {
