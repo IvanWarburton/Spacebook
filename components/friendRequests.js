@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Modal } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import Button from "react-bootstrap/Button";
 
 class FriendRequests extends Component {
 
@@ -10,7 +11,9 @@ class FriendRequests extends Component {
 
 		this.state = {
 			isLoadingData: true,
-			requestList: []
+			requestList: [],
+			alertModalVisible: false,
+			alertModalMesssage: "",
 		};
 	}
 
@@ -30,9 +33,11 @@ class FriendRequests extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
+				} else if (response.status === 500) {
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
@@ -40,10 +45,9 @@ class FriendRequests extends Component {
 					isLoadingData: false,
 					requestList: responseJson
 				});
-				this.getProfilePictures();
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	};
 
@@ -62,17 +66,17 @@ class FriendRequests extends Component {
 				} else if (response.status === 201) {
 					return "Request Accepted";
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
-					console.log("User is already added as a friend");
+					this.alertMessage("Error 403: User is already added as a friend");
 				} else if (response.status === 404) {
-					console.log("not Found");
+					this.alertMessage("Error 404: Not Found");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -91,20 +95,26 @@ class FriendRequests extends Component {
 				} else if (response.status === 201) {
 					return "Request Accepted";
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
-					console.log("User is already added as a friend");
+					this.alertMessage("Error 403: User is already added as a friend");
 				} else if (response.status === 404) {
-					console.log("not Found");
+					this.alertMessage("Error 404: Not Found");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
+	alertMessage(message) {
+		this.setState({
+			alertModalVisible: true,
+			alertModalMesssage: message
+		});
+	}
 
 	render() {
 		if (this.state.isLoadingData) {
@@ -145,6 +155,20 @@ class FriendRequests extends Component {
 						}
 					/>
 
+					<View>
+						<Modal visible={this.state.alertModalVisible}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.alertModal}>
+								<Text>ALERT</Text>
+								<Text>{this.state.alertModalMesssage}</Text>
+								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+							</View>
+
+						</Modal>
+					</View>
+
 				</View>
 			);
 		}
@@ -163,6 +187,20 @@ class FriendRequests extends Component {
 					<Text style={styles.mainText}>
 						It doesnt look like you have any friends requests at this time.
 					</Text>
+
+					<View>
+						<Modal visible={this.state.alertModalVisible}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.alertModal}>
+								<Text style={styles.mainText}>ALERT</Text>
+								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+							</View>
+
+						</Modal>
+					</View>
 
 				</View>
 			);
@@ -213,6 +251,25 @@ const styles = StyleSheet.create({
 	icon:
 	{
 		fontSize: "200%"
+	},
+	alertModal:
+	{
+		flex: 1,
+		margin: 20,
+		marginVertical: "90%",
+		backgroundColor: "#ffd4d8",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		textAlign: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5
 	}
 });
 

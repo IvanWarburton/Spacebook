@@ -28,7 +28,8 @@ class Profile extends Component {
 			isUsersPost: false,
 			alertModalVisible: false,
 			alertModalMesssage: "",
-			post: { text: "" }
+			post: { text: "" },
+			postInput: ""
 		};
 
 	}
@@ -65,7 +66,7 @@ class Profile extends Component {
 				this.getPosts();
 			})
 			.catch((err) => {
-				console.log("error", err);
+				this.alertMessage(err);
 			});
 	};
 
@@ -89,9 +90,13 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
+				} else if (response.status === 404) {
+					this.alertMessage("Error 404: Not Found");
+				} else if (response.status === 500) {
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
@@ -99,7 +104,7 @@ class Profile extends Component {
 				this.setState({ listData: responseJson });
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	};
 
@@ -117,17 +122,18 @@ class Profile extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					console.log("Logged Out");
 					window.location.reload(false);
 				} else if (response.status === 401) {
-					console.log("Logged Out");
-					window.location.reload(false);
+					this.alertMessage("Unauthorise");
+				} else if (response.status === 500) {
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
+				
 			});
 	};
 
@@ -146,9 +152,9 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
@@ -158,7 +164,7 @@ class Profile extends Component {
 				});
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -177,15 +183,15 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
 					console.log("Not friends with user");
 				} else if (response.status === 404) {
-					console.log("Not found");
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
@@ -206,7 +212,7 @@ class Profile extends Component {
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	};
 
@@ -221,7 +227,7 @@ class Profile extends Component {
 						justifyContent: "center",
 						alignItems: "center",
 					}}>
-					<Text>Loading..</Text>
+					<Text style={styles.mainText}>Loading..</Text>
 				</View>
 			);
 		}
@@ -234,7 +240,7 @@ class Profile extends Component {
 						justifyContent: "center",
 						alignItems: "center",
 					}}>
-					<Text>There are no posts at this time.</Text>
+					<Text style={styles.mainText}>There are no posts at this time.</Text>
 				</View>
 			);
 		}
@@ -289,7 +295,7 @@ class Profile extends Component {
 
 						{this.state.isLoadingAPost && (
 							<View style={styles.modalView}>
-								<Text>Loading... </Text>
+								<Text style={styles.mainText}>Loading... </Text>
 								{console.log("code loading before suposed too here")}
 								<Button onClick={() => this.setState({ [modalName]: false })}>Close</Button>
 							</View>
@@ -300,27 +306,22 @@ class Profile extends Component {
 
 								{!this.state.isUsersPost && (
 									<View>
-										<Text>
+										<Text style={styles.mainText}>
 											{this.state.viewingPost.author.first_name} {this.state.viewingPost.author.last_name}: {this.state.viewingPost.text}
 										</Text>
 
-										<Text>
+										<Text style={styles.mainText}>
 											Likes: {this.state.viewingPost.numLikes} Date: {this.state.viewingPost.timestamp.slice(0, 10)} Time: {this.state.viewingPost.timestamp.slice(12, 16)}
 										</Text>
 									</View>
 								)}
 
 								{this.state.isUsersPost && (
-									<View>
-										<Text>
-											{this.state.viewingPost.author.first_name} {this.state.viewingPost.author.last_name}:
-										</Text>
-										<TextInput
-											style={styles.input}
-											placeholder={this.state.viewingPost.text}
-											onChangeText={(post) => this.state.viewingPost.text = post}
-										/>
-									</View>
+									<TextInput
+										style={styles.input}
+										placeholder={this.state.viewingPost.text}
+										onChangeText={(post) => this.state.viewingPost.text = post}
+									/>
 								)}
 
 								{this.state.isUsersPost && (
@@ -368,15 +369,15 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
 					console.log("Not friends with user");
 				} else if (response.status === 404) {
-					console.log("Not found");
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
@@ -387,7 +388,7 @@ class Profile extends Component {
 				if (this.state.viewingPost.author.user_id == this.state.loggedInUser) { this.setState({ isUsersPost: true }); }
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -405,20 +406,19 @@ class Profile extends Component {
 		})
 			.then((response) => {
 				if (response.status === 201) {
-					console.log("Created");
 					this.getPosts();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 404) {
-					console.log("Not found");
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -441,21 +441,21 @@ class Profile extends Component {
 					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 400) {
-					console.log("Bad Request");
+					this.alertMessage("Error 404: Bad Request");
 				} else if (response.status === 401) {
-					console.log("Unauthorise");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
-					console.log("Forbidden - you can only update your own posts");
+					this.alertMessage("Error 403: Forbidden - you can only update your own posts");
 				} else if (response.status === 404) {
-					console.log("Not Found");
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -469,23 +469,22 @@ class Profile extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					console.log("Post Delete");
 					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
-					console.log("You can only delete your own posts");
+					this.alertMessage("Error 403: You can only delete your own posts");
 				} else if (response.status === 404) {
-					console.log("Not found");
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -498,35 +497,29 @@ class Profile extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					console.log("Post Liked");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.getPosts();
 				} else if (response.status === 400) {
-					console.log("Bad Request. You may have already liked this post.");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Bad Request. You may have already liked this post.");
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Unauthorised");
 				} else if (response.status === 403) {
-					console.log("You have already liked the post");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("You have already liked the post or you are not friends with this person.");
 				} else if (response.status === 404) {
-					console.log("Not found");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Not found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -539,35 +532,29 @@ class Profile extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					console.log("Post UnLiked");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.getPosts();
 				} else if (response.status === 400) {
-					console.log("Bad Request. You may have already Unliked this post.");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Bad Request. You may have already Unliked this post.");
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Unauthorised");
 				} else if (response.status === 403) {
-					console.log("You have not liked this post");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("You have not liked this post or you are not friends with this person.");
 				} else if (response.status === 404) {
-					console.log("Not found");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Not found");
 				} else if (response.status === 500) {
-					console.log("Server Error");
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
 					this.alertMessage("Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	}
 
@@ -675,7 +662,7 @@ class Profile extends Component {
 							multiline={true}
 							numberOfLines={3}
 							placeholder="Add Post"
-							onChangeText={(text) => this.state.post.text = text}
+							onChangeText={(text) => this.state.post["text"] = text}
 						/>
 
 						<Button onClick={() => this.createPost()}>Add Post</Button>
@@ -689,8 +676,8 @@ class Profile extends Component {
 							transparent={true}>
 
 							<View style={styles.alertModal}>
-								<Text>ALERT</Text>
-								<Text>{this.state.alertModalMesssage}</Text>
+								<Text style={styles.mainText}>ALERT</Text>
+								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
 								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
 							</View>
 
@@ -755,6 +742,8 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		width: "70%",
 		borderRadius: 20,
+		textAlign: "center",
+		backgroundColor: "#D1D1D1"
 	},
 	modalView:
 	{
@@ -765,6 +754,7 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		padding: 35,
 		alignItems: "center",
+		textAlign: "center",
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,
@@ -777,12 +767,14 @@ const styles = StyleSheet.create({
 	alertModal:
 	{
 		flex: 1,
+		justifyContent: "space-evenly",
 		margin: 20,
 		marginVertical: "90%",
 		backgroundColor: "#ffd4d8",
 		borderRadius: 20,
 		padding: 35,
 		alignItems: "center",
+		textAlign: "center",
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,

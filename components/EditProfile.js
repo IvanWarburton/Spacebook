@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Camera } from "expo-camera";
 import Button from "react-bootstrap/Button";
@@ -13,8 +13,11 @@ class Profile extends Component {
 			isLoadingData: true,
 			isEditingImage: false,
 			listData: [],
+			listDataCopy: [],
 			hasPermission: null,
-			type: Camera.Constants.Type.back
+			type: Camera.Constants.Type.back,
+			alertModalVisible: false,
+			alertModalMesssage: "",
 		};
 	}
 
@@ -40,11 +43,22 @@ class Profile extends Component {
 			body: blob
 		})
 			.then((response) => {
-				console.log("Picture added", response);
-				window.location.reload(false);
+				if (response.status === 200) {
+					window.location.reload(false);
+				} else if (response.status === 400) {
+					this.alertMessage("Error 400: Bad Request");
+				} else if (response.status === 401) {
+					this.alertMessage("Error 401: Unauthorised");
+				} else if (response.status === 404) {
+					this.alertMessage("Error 404: Not Found");
+				} else if (response.status === 500) {
+					this.alertMessage("Error 500: Server Error");
+				} else {
+					this.alertMessage("Error: Something went wrong");
+				}
 			})
 			.catch((err) => {
-				console.log(err);
+				this.alertMessage(err);
 			});
 	};
 
@@ -56,7 +70,7 @@ class Profile extends Component {
 				onPictureSaved: (data) => this.sendToServer(data)
 			};
 			await this.camera.takePictureAsync(options);
-            
+
 		}
 	};
 
@@ -73,25 +87,41 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					console.log("Unauthorised");
+					this.alertMessage("Error 401: Unauthorised");
+				} else if (response.status === 404) {
+					this.alertMessage("Error 404: Not Found");
+				} else if (response.status === 500) {
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 			.then((responseJson) => {
 				this.setState({
 					isLoadingData: false,
-					listData: responseJson
+					listData: responseJson,
+					listDataCopy: responseJson
 				});
 			})
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
 	};
 
 
 	editInfo = async () => {
 
+		// console.log(this.state.listData.first_name);
+		// console.log(this.state.listDataCopy.first_name);
+		// if (this.state.listData.first_name === this.state.listDataCopy.first_name) {
+		// 	console.log(this.state.listData.first_name);
+		// 	this.alertMessage("no change");
+		// }
+		// else if(this.state.listData["password"].length < 6)
+		// {
+		// 	this.alertMessage("Invalid Password: Password must be more than 6 charaters");
+		// }
+		// else {
 		let userID = await AsyncStorage.getItem("@user_id");
 		let token = await AsyncStorage.getItem("@session_token");
 		return fetch("http://localhost:3333/api/1.0.0/user/" + userID,
@@ -109,24 +139,32 @@ class Profile extends Component {
 				if (response.status === 200) {
 					window.location.reload(false);
 				} else if (response.status === 400) {
-					throw "Bad Request";
+					this.alertMessage("Error 400: Bad Request");
+				} else if (response.status === 401) {
+					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 403) {
-					throw "Forbidden";
+					this.alertMessage("Error 403: Forbidden");
 				} else if (response.status === 404) {
-					throw "Not Found";
+					this.alertMessage("Error 404: Not Found");
 				} else if (response.status === 500) {
-					throw "Server Error";
+					this.alertMessage("Error 500: Server Error");
 				} else {
-					throw "Something went wrong";
+					this.alertMessage("Error: Something went wrong");
 				}
 			})
 
 			.catch((error) => {
-				console.log(error);
+				this.alertMessage(error);
 			});
+		//}
 	};
 
-
+	alertMessage(message) {
+		this.setState({
+			alertModalVisible: true,
+			alertModalMesssage: message
+		});
+	}
 
 	render() {
 		if (this.state.isLoadingData) {
@@ -185,13 +223,11 @@ class Profile extends Component {
 				<View style={styles.container}>
 
 					<Text style={styles.mainTitle}>
-                        Edit My Information
+						Edit My Information
 					</Text>
 
-					<Button onClick={() => this.setState({ isEditingImage: true })}>Update Profile Picture</Button>
-
 					<Text style={styles.mainText}>
-                        First Name:
+						First Name:
 					</Text>
 
 					<TextInput
@@ -201,7 +237,7 @@ class Profile extends Component {
 					/>
 
 					<Text style={styles.mainText}>
-                        Last Name:
+						Last Name:
 					</Text>
 
 					<TextInput
@@ -212,7 +248,7 @@ class Profile extends Component {
 
 
 					<Text style={styles.mainText}>
-                        Email:
+						Email:
 					</Text>
 
 					<TextInput
@@ -222,7 +258,7 @@ class Profile extends Component {
 					/>
 
 					<Text style={styles.mainText}>
-                        Password:
+						Password:
 					</Text>
 
 					<TextInput
@@ -233,7 +269,22 @@ class Profile extends Component {
 
 					<View style={styles.container2}>
 						<Button onClick={() => this.editInfo()}>Update</Button>
+						<Button onClick={() => this.setState({ isEditingImage: true })}>Update Profile Picture</Button>
 						<Button onClick={() => this.props.navigation.navigate("Profile")}>Cancel</Button>
+					</View>
+
+					<View>
+						<Modal visible={this.state.alertModalVisible}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.alertModal}>
+								<Text style={styles.mainText}>ALERT</Text>
+								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+							</View>
+
+						</Modal>
 					</View>
 				</View>
 			);
@@ -243,73 +294,94 @@ class Profile extends Component {
 
 const styles = StyleSheet.create({
 	container:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center"
+	},
 	container2:
-    {
-    	flexDirection: "row",
-    	justifyContent: "space-evenly",
-    	alignItems: "center",
-    	width: "100%",
-    	margin: 10,
-    },
+	{
+		flexDirection: "row",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		width: "100%",
+		margin: 10,
+	},
 	mainTitle:
-    {
-    	fontSize: 40,
-    	fontWeight: "bold"
-    },
+	{
+		fontSize: 40,
+		fontWeight: "bold"
+	},
 	mainText:
-    {
-    	fontSize: 20,
-    	fontWeight: "bold"
-    },
+	{
+		fontSize: 20,
+		fontWeight: "bold"
+	},
 	button:
-    {
-    	padding: 10
-    },
+	{
+		padding: 10
+	},
 	input:
-    {
-    	margin: 40,
-    	padding: 10,
-    	fontWeight: "bold",
-    	width: "80%",
-    	borderRadius: 20,
-    },
+	{
+		margin: 40,
+		padding: 10,
+		fontWeight: "bold",
+		width: "80%",
+		borderRadius: 20,
+		textAlign: "center",
+		backgroundColor: "#D1D1D1"
+	},
 	camContainer:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center"
+	},
 	camera:
-    {
-    	margin: 40,
-    	width: "100%",
-    	height: "100%"
-    },
+	{
+		margin: 40,
+		width: "100%",
+		height: "100%"
+	},
 	camButtonContainer:
-    {
-    	flex: 1,
-    	backgroundColor: "transparent",
-    	flexDirection: "row",
-    	margin: 20,
-    },
+	{
+		flex: 1,
+		backgroundColor: "transparent",
+		flexDirection: "row",
+		margin: 20,
+	},
 	camButton:
-    {
-    	flex: 0.1,
-    	alignSelf: "flex-end",
-    	alignItems: "center",
-    },
+	{
+		flex: 0.1,
+		alignSelf: "flex-end",
+		alignItems: "center",
+	},
 	camText:
-    {
-    	fontSize: 18,
-    	color: "white",
-    },
+	{
+		fontSize: 18,
+		color: "white",
+	},
+	alertModal:
+	{
+		flex: 1,
+		margin: 20,
+		marginVertical: "90%",
+		backgroundColor: "#ffd4d8",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		textAlign: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5
+	}
 });
 
 export default Profile;

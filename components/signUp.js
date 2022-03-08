@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TextInput} from "react-native";
+import { View, Text, StyleSheet, TextInput, Modal } from "react-native";
 import Button from "react-bootstrap/Button";
 
 class SignUp extends Component {
 
-	constructor(props){
+	constructor(props) {
 		super(props);
 
 		this.state = {
@@ -12,53 +12,56 @@ class SignUp extends Component {
 			last_name: "",
 			email: "",
 			password: "",
-			alert_message: ""
+			alert_message: "",
+			placeholderColour: null,
+			alertModalVisible: false
 		};
 	}
 
 	signup = async () => {
 
-		// const IncorrectDetailsAlert = () =>
-		// Alert.alert(
-		//     "Incorrect Login Details Entered",
-		//     this.state.alert_message,
-		//     [{ text: "OK"}]
-		// );
+		let state = this.state;
+		let newUser = {first_name: "", last_name: "", email: "", password: ""};
 
-		if(this.state.first_name.length > 20 || this.state.first_name.length < 1)
-		{
-			//this.setState({alert_message: 'First Name cannot exceed a maximum of 20 characters'});
-			//IncorrectDetailsAlert;
-			console.log("First Name must be between 0 and 20 characters");
+		newUser["first_name"] = state.first_name;
+		newUser["last_name"] = state.last_name;
+		newUser["email"] = state.email;
+		newUser["password"] = state.password;
+
+		if(!state.first_name || !state.last_name || !state.email || !state.password)
+		{this.setState({placeholderColour: "red"});}
+
+		if (state.first_name.length > 20 || state.first_name.length < 1) {
+			this.alertMessage("First Name must be between 1 and 20 characters");
 		}
-		else if(this.state.last_name.length > 20 || this.state.last_name.length < 1)
-		{
-			console.log("Last Name must be between 0 and 20 characters");
+		else if (state.last_name.length > 20 || state.last_name.length < 1) {
+			this.alertMessage("Last Name must be between 1 and 20 characters");
 		}
-		else if(!this.state.email.includes("@") || this.state.email.length < 1)
-		{
-			console.log("Invalid Email: Example Email Spacebook@Spacebook.com");
+		else if (!state.email.includes("@") || state.email.length < 1) {
+			this.alertMessage("Invalid Email: Example Email Spacebook@Spacebook.com");
 		}
-		else if(this.state.password.length < 6)
-		{
-			console.log("Invalid Password: Must be more than 6 charaters");
+		else if (state.password.length < 6) {
+			this.alertMessage("Invalid Password: Password must be more than 6 charaters");
 		}
-		else
-		{
+		else {
+			
+
 			return fetch("http://localhost:3333/api/1.0.0/user", {
 				method: "post",
 				headers: {
 					"Content-Type": "application/json"
 				},
-				body: JSON.stringify(this.state)
+				body: JSON.stringify(newUser)
 			})
 				.then((response) => {
-					if(response.status === 201){
+					if (response.status === 201) {
 						return response.json();
-					}else if(response.status === 400){
-						throw "Failed validation";
-					}else{
-						throw "Something went wrong";
+					} else if (response.status === 400) {
+						this.alertMessage("Error 400: Failed Validation");
+					} else if (response.status === 500) {
+						this.alertMessage("Error 500: Server Error");
+					} else {
+						this.alertMessage("Error: Something went wrong");
 					}
 				})
 				.then((responseJson) => {
@@ -66,113 +69,130 @@ class SignUp extends Component {
 					this.props.navigation.navigate("Sign In");
 				})
 				.catch((error) => {
-					console.log(error);
+					this.alertMessage(error);
 				});
 		}
 	};
+
+	alertMessage(message) {
+		this.setState({
+			alertModalVisible: true,
+			alertModalMesssage: message
+		});
+	}
 
 	render() {
 		return (
 			<View style={styles.container}>
 
-				<View style={styles.container2}>
-					{/*
-                    <Image 
-                    style={styles.logo}
-                    source={require('./assets/Spacebook_Icon.png')} 
-                    />*/}
-                    
-					<Text style={styles.mainTitle}>
-                        SpaceBook
-					</Text>
-				</View>
+				<Text style={styles.mainTitle}>
+					SpaceBook
+				</Text>
+
 
 				<Text style={styles.mainText}>
-                        Sign up to your Spacebook acount today.
+					Sign up to your Spacebook acount today.
 				</Text>
 
 				<TextInput
 					style={styles.input}
 					placeholder="Enter your first name..."
-					onChangeText={(first_name) => this.setState({first_name})}
-					value={this.state.first_name}
+					placeholderTextColor={this.state.placeholderColour}
+					onChangeText={(first_name) => this.setState({ first_name })}
 				/>
 
 				<TextInput
 					style={styles.input}
 					placeholder="Enter your last name..."
-					onChangeText={(last_name) => this.setState({last_name})}
-					value={this.state.last_name}
+					placeholderTextColor={this.state.placeholderColour}
+					onChangeText={(last_name) => this.setState({ last_name })}
 				/>
 
 				<TextInput
 					style={styles.input}
 					placeholder="Enter your email..."
-					onChangeText={(email) => this.setState({email})}
-					value={this.state.email}
+					placeholderTextColor={this.state.placeholderColour}
+					onChangeText={(email) => this.setState({ email })}
 				/>
 
 				<TextInput
 					style={styles.input}
 					placeholder="Enter your password..."
-					onChangeText={(password) => this.setState({password})}
-					value={this.state.password}
+					placeholderTextColor={this.state.placeholderColour}
+					onChangeText={(password) => this.setState({ password })}
 					secureTextEntry
 				/>
-                        
+
 				<Button onClick={() => this.signup()}>Sign Up</Button>
 
+
+				<View>
+					<Modal visible={this.state.alertModalVisible}
+						animationType="fade"
+						transparent={true}>
+
+						<View style={styles.alertModal}>
+							<Text style={styles.mainText}>ALERT</Text>
+							<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+							<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+						</View>
+
+					</Modal>
+				</View>
+
 			</View>
-
-
 		);
 	}
 }
 
 const styles = StyleSheet.create({
 	container:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
-	container2:
-    {
-    	flexDirection: "row",
-    	justifyContent: "space-evenly"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center"
+	},
 	mainTitle:
-    {
-    	fontSize: 40,
-    	fontWeight: "bold"
-    },
+	{
+		fontSize: 40,
+		fontWeight: "bold"
+	},
 	mainText:
-    {
-    	fontSize: 20,
-    	fontWeight: "bold"
-    },
-	button:
-    {
-    	padding: 10
-    },
+	{
+		fontSize: 20,
+		fontWeight: "bold",
+    	textAlign: "center"
+	},
 	input:
-    {
-    	margin: 40,
-    	padding: 10,
-    	width: "70%"
-    },
-	space:
-    {
-    	width: 20,
-    	height: 20
-    },
-	logo:
-    {
-    	width: 100,
-    	height: 100,
-    	resizeMode: "contain"
-    }
+	{
+		padding: 10,
+    	fontSize: 15,
+    	fontWeight: "bold",
+    	width: "70%",
+    	borderRadius: 20,
+    	textAlign: "center",
+		backgroundColor: "#D1D1D1"
+	},
+	alertModal:
+	{
+		flex: 1,
+		margin: 20,
+		marginVertical: "90%",
+		backgroundColor: "#ffd4d8",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+    	textAlign: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+		elevation: 5
+	}
 });
 
 export default SignUp;
