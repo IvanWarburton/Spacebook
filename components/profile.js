@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Image, Modal, TextInput, TouchableOpacity, Flat
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "react-bootstrap/Button";
 
+//https://reactnativeelements.com/
+
 class Profile extends Component {
 
 	constructor(props) {
@@ -27,8 +29,14 @@ class Profile extends Component {
 			noPostsFound: true,
 			isUsersPost: false,
 			alertModalVisible: false,
+			savePostModalVisable: false,
+			savedPostsModalVisable: false,
 			alertModalMesssage: "",
-			post: { text: "" },
+			post:
+			{
+				postName: "",
+				text: ""
+			},
 			postInput: ""
 		};
 
@@ -86,10 +94,14 @@ class Profile extends Component {
 		return fetch("http://localhost:3333/api/1.0.0/user/" + UserId, {
 			"headers": { "X-Authorization": this.state.sessionToken }
 		})
-			.then((response) => {
+			.then(async (response) => {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
+					await AsyncStorage.removeItem("@session_token");
+					await AsyncStorage.removeItem("@user_id");
+					await AsyncStorage.removeItem("@viewing_user_id");
+					window.location.reload(false);
 					this.alertMessage("Error 401: Unauthorised");
 				} else if (response.status === 404) {
 					this.alertMessage("Error 404: Not Found");
@@ -133,7 +145,7 @@ class Profile extends Component {
 			})
 			.catch((error) => {
 				this.alertMessage(error);
-				
+
 			});
 	};
 
@@ -259,7 +271,7 @@ class Profile extends Component {
 								</Text>
 
 								<Text style={styles.postText}>
-									Likes: {item.numLikes} Date: {item.timestamp.slice(0, 10)} Time: {item.timestamp.slice(12, 16)} 
+									Likes: {item.numLikes} Date: {item.timestamp.slice(0, 10)} Time: {item.timestamp.slice(12, 16)}
 								</Text>
 
 							</TouchableOpacity>
@@ -303,6 +315,8 @@ class Profile extends Component {
 
 						{!this.state.isLoadingAPost && (
 							<View style={styles.modalView}>
+
+								<Text style={styles.modalTitle}>Update Post</Text>
 
 								{!this.state.isUsersPost && (
 									<View>
@@ -392,6 +406,25 @@ class Profile extends Component {
 			});
 	}
 
+	async savedPosts()
+	{
+		this.setState({ savedPostsModalVisable: true });
+		let storageData = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
+		console.log(storageData);
+	}
+
+	async savePost() {
+		if (await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)) === null) { await AsyncStorage.setItem("@SavedPosts" + this.state.loggedInUser, "{}"); }
+
+		let storageData = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
+
+		storageData[this.state.post.postName] = this.state.post.text;
+
+		await AsyncStorage.setItem(("@SavedPosts" + this.state.loggedInUser), JSON.stringify(storageData));
+
+		this.setState({ savePostModalVisable: false });
+	}
+
 	async createPost() {
 		let user = null;
 		this.setState({ isLoadingPosts: true });
@@ -402,7 +435,7 @@ class Profile extends Component {
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post", {
 			method: "post",
 			headers: { "Content-Type": "application/json", "X-Authorization": this.state.sessionToken },
-			body: JSON.stringify(this.state.post)
+			body: this.state.post.text
 		})
 			.then((response) => {
 				if (response.status === 201) {
@@ -656,19 +689,60 @@ class Profile extends Component {
 						</View>
 					)}
 
-					<View style={styles.container2}>
-						<TextInput
-							style={styles.input}
-							multiline={true}
-							numberOfLines={3}
-							placeholder="Add Post"
-							onChangeText={(text) => this.state.post["text"] = text}
-						/>
+					<TextInput
+						style={styles.input}
+						multiline={true}
+						numberOfLines={3}
+						placeholder="Add Post"
+						onChangeText={(text) => this.state.post["text"] = text}
+					/>
 
+					<View style={styles.container2}>
+						<Button onClick={() => this.setState({ savePostModalVisable: true })}>Save Post</Button>
 						<Button onClick={() => this.createPost()}>Add Post</Button>
+						<Button onClick={() => this.savedPosts()}>View Saved Posts</Button>
 					</View>
 
 					<this.postLists />
+
+					<View>
+						<Modal visible={this.state.savedPostsModalVisable}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.modalView}>
+
+								<Text style={styles.mainText}>Saved Posts</Text>
+
+								<Button onClick={() => this.setState({ savedPostsModalVisable: false })}>Close</Button>
+							</View>
+
+						</Modal>
+					</View>
+
+					<View>
+						<Modal visible={this.state.savePostModalVisable}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.modalView}>
+
+								<Text style={styles.mainText}>Save Post For Later</Text>
+
+								<Text style={styles.mainText}>{this.state.post.text}</Text>
+
+								<TextInput
+									style={styles.input}
+									placeholder="Save Post As:"
+									onChangeText={(text) => this.state.post["postName"] = text}
+								/>
+
+								<Button onClick={() => this.savePost()}>Save Post</Button>
+								<Button onClick={() => this.setState({ savePostModalVisable: false })}>Close</Button>
+							</View>
+
+						</Modal>
+					</View>
 
 					<View>
 						<Modal visible={this.state.alertModalVisible}
@@ -712,6 +786,11 @@ const styles = StyleSheet.create({
 		fontSize: 40,
 		fontWeight: "bold"
 	},
+	modalTitle:
+	{
+		fontSize: 20,
+		fontWeight: "bold"
+	},
 	mainText:
 	{
 		flex: 1,
@@ -730,7 +809,7 @@ const styles = StyleSheet.create({
 	},
 	logo:
 	{
-		margin: 10, 
+		margin: 10,
 		width: 200,
 		height: 200,
 		borderRadius: 200 / 2
@@ -748,6 +827,7 @@ const styles = StyleSheet.create({
 	modalView:
 	{
 		flex: 1,
+		justifyContent: "space-evenly",
 		margin: 20,
 		marginVertical: "80%",
 		backgroundColor: "white",
@@ -761,8 +841,7 @@ const styles = StyleSheet.create({
 			height: 2
 		},
 		shadowOpacity: 0.25,
-		shadowRadius: 4,
-		elevation: 1
+		shadowRadius: 4
 	},
 	alertModal:
 	{
@@ -781,8 +860,7 @@ const styles = StyleSheet.create({
 			height: 2
 		},
 		shadowOpacity: 0.25,
-		shadowRadius: 4,
-		elevation: 5
+		shadowRadius: 4
 	}
 });
 

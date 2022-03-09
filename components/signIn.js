@@ -185,13 +185,14 @@ const styles = StyleSheet.create({
 	alertModal:
 	{
 		flex: 1,
+		justifyContent: "space-evenly",
 		margin: 20,
 		marginVertical: "90%",
 		backgroundColor: "#ffd4d8",
 		borderRadius: 20,
 		padding: 35,
 		alignItems: "center",
-    	textAlign: "center",
+		textAlign: "center",
 		shadowColor: "#000",
 		shadowOffset: {
 			width: 0,

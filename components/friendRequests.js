@@ -255,6 +255,7 @@ const styles = StyleSheet.create({
 	alertModal:
 	{
 		flex: 1,
+		justifyContent: "space-evenly",
 		margin: 20,
 		marginVertical: "90%",
 		backgroundColor: "#ffd4d8",

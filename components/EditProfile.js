@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal } from "react-native";
+import { View, Text, StyleSheet, TextInput, Modal } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Camera } from "expo-camera";
 import Button from "react-bootstrap/Button";
@@ -13,7 +13,6 @@ class Profile extends Component {
 			isLoadingData: true,
 			isEditingImage: false,
 			listData: [],
-			listDataCopy: [],
 			hasPermission: null,
 			type: Camera.Constants.Type.back,
 			alertModalVisible: false,
@@ -99,8 +98,7 @@ class Profile extends Component {
 			.then((responseJson) => {
 				this.setState({
 					isLoadingData: false,
-					listData: responseJson,
-					listDataCopy: responseJson
+					listData: responseJson
 				});
 			})
 			.catch((error) => {
@@ -110,53 +108,56 @@ class Profile extends Component {
 
 
 	editInfo = async () => {
+		let state = this.state.listData;
 
-		// console.log(this.state.listData.first_name);
-		// console.log(this.state.listDataCopy.first_name);
-		// if (this.state.listData.first_name === this.state.listDataCopy.first_name) {
-		// 	console.log(this.state.listData.first_name);
-		// 	this.alertMessage("no change");
-		// }
-		// else if(this.state.listData["password"].length < 6)
-		// {
-		// 	this.alertMessage("Invalid Password: Password must be more than 6 charaters");
-		// }
-		// else {
-		let userID = await AsyncStorage.getItem("@user_id");
-		let token = await AsyncStorage.getItem("@session_token");
-		return fetch("http://localhost:3333/api/1.0.0/user/" + userID,
-			{
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					"X-Authorization": token
-				},
-				body: JSON.stringify(this.state.listData)
-			}
-		)
-
-			.then((response) => {
-				if (response.status === 200) {
-					window.location.reload(false);
-				} else if (response.status === 400) {
-					this.alertMessage("Error 400: Bad Request");
-				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
-				} else if (response.status === 403) {
-					this.alertMessage("Error 403: Forbidden");
-				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
-				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
-				} else {
-					this.alertMessage("Error: Something went wrong");
+		if (state.first_name.length > 20 || state.first_name.length < 1) {
+			this.alertMessage("First Name must be between 1 and 20 characters");
+		}
+		else if (state.last_name.length > 20 || state.last_name.length < 1) {
+			this.alertMessage("Last Name must be between 1 and 20 characters");
+		}
+		else if (!state.email.includes("@") || state.email.length < 1) {
+			this.alertMessage("Invalid Email: Example Email Spacebook@Spacebook.com");
+		}
+		else if (state.password && state.password.length < 6) {
+			this.alertMessage("Invalid Password: Password must be more than 6 charaters");
+		}
+		else {
+			let userID = await AsyncStorage.getItem("@user_id");
+			let token = await AsyncStorage.getItem("@session_token");
+			return fetch("http://localhost:3333/api/1.0.0/user/" + userID,
+				{
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Authorization": token
+					},
+					body: JSON.stringify(this.state.listData)
 				}
-			})
+			)
 
-			.catch((error) => {
-				this.alertMessage(error);
-			});
-		//}
+				.then((response) => {
+					if (response.status === 200) {
+						window.location.reload(false);
+					} else if (response.status === 400) {
+						this.alertMessage("Error 400: Bad Request");
+					} else if (response.status === 401) {
+						this.alertMessage("Error 401: Unauthorised");
+					} else if (response.status === 403) {
+						this.alertMessage("Error 403: Forbidden");
+					} else if (response.status === 404) {
+						this.alertMessage("Error 404: Not Found");
+					} else if (response.status === 500) {
+						this.alertMessage("Error 500: Server Error");
+					} else {
+						this.alertMessage("Error: Something went wrong");
+					}
+				})
+
+				.catch((error) => {
+					this.alertMessage(error);
+				});
+		}
 	};
 
 	alertMessage(message) {
@@ -189,29 +190,19 @@ class Profile extends Component {
 							style={styles.camera}
 							type={this.state.type}
 							ref={ref => this.camera = ref}
-						>
+						/>
 
-							<View style={styles.camButtonContainer}>
-								<TouchableOpacity
-									style={styles.camButton}
-									onPress={() => {
-										this.takePicture();
-									}}>
-									<Text style={styles.camText}> Take Photo </Text>
-								</TouchableOpacity>
-							</View>
-						</Camera>
-
-
-						<Button onClick={() => this.setState({ isEditingImage: false })}>Cancel</Button>
-
+						<View style={styles.container2}>
+							<Button onClick={() => this.takePicture()}>Take Picture</Button>
+							<Button onClick={() => this.setState({ isEditingImage: false })}>Cancel</Button>
+						</View>
 
 					</View>
 				);
 			} else {
 				return (
-					<View>
-						<Text>No access to camera</Text>
+					<View style={styles.container}>
+						<Text style={styles.mainTitle}>No access to camera</Text>
 
 						<Button onClick={() => this.setState({ isEditingImage: false })}>Cancel</Button>
 					</View>
@@ -280,7 +271,7 @@ class Profile extends Component {
 
 							<View style={styles.alertModal}>
 								<Text style={styles.mainText}>ALERT</Text>
-								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+								<Text style={styles.alertText}>{this.state.alertModalMesssage}</Text>
 								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
 							</View>
 
@@ -334,38 +325,21 @@ const styles = StyleSheet.create({
 	},
 	camContainer:
 	{
+		margin: 10,
 		flex: 1,
-		flexDirection: "column",
 		justifyContent: "space-evenly",
 		alignItems: "center"
 	},
 	camera:
 	{
-		margin: 40,
+		margin: 10,
 		width: "100%",
 		height: "100%"
-	},
-	camButtonContainer:
-	{
-		flex: 1,
-		backgroundColor: "transparent",
-		flexDirection: "row",
-		margin: 20,
-	},
-	camButton:
-	{
-		flex: 0.1,
-		alignSelf: "flex-end",
-		alignItems: "center",
-	},
-	camText:
-	{
-		fontSize: 18,
-		color: "white",
 	},
 	alertModal:
 	{
 		flex: 1,
+		justifyContent: "space-evenly",
 		margin: 20,
 		marginVertical: "90%",
 		backgroundColor: "#ffd4d8",
@@ -381,7 +355,12 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.25,
 		shadowRadius: 4,
 		elevation: 5
-	}
+	},
+	alertText:
+	{
+		fontSize: 15,
+		fontWeight: "bold"
+	},
 });
 
 export default Profile;
