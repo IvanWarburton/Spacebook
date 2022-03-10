@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import { View, Text, StyleSheet, Image, Modal, TextInput, TouchableOpacity, FlatList } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "react-bootstrap/Button";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
-//https://reactnativeelements.com/
 
 class Profile extends Component {
 
@@ -15,6 +15,7 @@ class Profile extends Component {
 			friendsFriendList: [],
 			posts: [],
 			viewingPost: [],
+			savedPosts: [],
 			isLoading: true,
 			isLoadingPosts: true,
 			isLoadingAPost: true,
@@ -31,6 +32,8 @@ class Profile extends Component {
 			alertModalVisible: false,
 			savePostModalVisable: false,
 			savedPostsModalVisable: false,
+			editSavePostVisable: false,
+			savedPostUpdateData: "",
 			alertModalMesssage: "",
 			post:
 			{
@@ -406,21 +409,65 @@ class Profile extends Component {
 			});
 	}
 
-	async savedPosts()
-	{
+	async postSavedPost(post) {
+		this.setState({ savedPostsModalVisable: false });
+		this.state.post.text = this.state.savedPosts[post].data;
+		this.createPost();
+	}
+
+	async deleteSavedPost(post) {
+		let SavedPosts = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
+		let save = parseInt(post.slice(4));
+
+		delete SavedPosts[post];
+
+		//Moves all elements down one in the object and deletes last element
+		for (let i = save + 1; i <= Object.keys(SavedPosts).length; i++) {
+			SavedPosts["save" + (i - 1)] = SavedPosts["save" + i];
+			if (i === Object.keys(SavedPosts).length) {
+				delete SavedPosts["save" + i];
+			}
+		}
+
+		await AsyncStorage.setItem(("@SavedPosts" + this.state.loggedInUser), JSON.stringify(SavedPosts));
+
+		this.setState({ savedPosts: JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser))) });
+	}
+
+	async updateSavedPost(post) {
+		let SavedPosts = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
+
+		SavedPosts[post] =
+		{
+			"saveName": SavedPosts[post].saveName,
+			"data": this.state.savedPostUpdateData
+		};
+
+		await AsyncStorage.setItem(("@SavedPosts" + this.state.loggedInUser), JSON.stringify(SavedPosts));
+
+		this.setState({ savedPosts: JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser))) });
+
+		this.setState({ ["editSavePostVisable" + post]: false });
+	}
+
+	async savedPosts() {
 		this.setState({ savedPostsModalVisable: true });
-		let storageData = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
-		console.log(storageData);
+		this.setState({ savedPosts: JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser))) });
 	}
 
 	async savePost() {
+
 		if (await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)) === null) { await AsyncStorage.setItem("@SavedPosts" + this.state.loggedInUser, "{}"); }
 
-		let storageData = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
+		let SavedPosts = JSON.parse(await AsyncStorage.getItem(("@SavedPosts" + this.state.loggedInUser)));
 
-		storageData[this.state.post.postName] = this.state.post.text;
+		SavedPosts[("save" + (Object.keys(SavedPosts).length + 1))] =
+		{
+			"saveName": this.state.post.postName,
+			"data": this.state.post.text
+		};
 
-		await AsyncStorage.setItem(("@SavedPosts" + this.state.loggedInUser), JSON.stringify(storageData));
+		await AsyncStorage.setItem(("@SavedPosts" + this.state.loggedInUser), JSON.stringify(SavedPosts));
 
 		this.setState({ savePostModalVisable: false });
 	}
@@ -435,7 +482,7 @@ class Profile extends Component {
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post", {
 			method: "post",
 			headers: { "Content-Type": "application/json", "X-Authorization": this.state.sessionToken },
-			body: this.state.post.text
+			body: JSON.stringify(this.state.post)
 		})
 			.then((response) => {
 				if (response.status === 201) {
@@ -705,14 +752,63 @@ class Profile extends Component {
 
 					<this.postLists />
 
-					<View>
+					<View style={styles.container}>
 						<Modal visible={this.state.savedPostsModalVisable}
 							animationType="fade"
 							transparent={true}>
 
 							<View style={styles.modalView}>
 
-								<Text style={styles.mainText}>Saved Posts</Text>
+								<Text style={styles.mainTitle}>Saved Posts</Text>
+
+								{!this.state.savedPosts && (
+									<Text style={styles.mainText}>There are no saved Post.</Text>
+								)}
+
+								{this.state.savedPosts && (
+									<FlatList
+										data={Object.keys(this.state.savedPosts)}
+										renderItem={({ item }) =>
+											<View style={styles.innerContain}>
+
+												{!this.state["editSavePostVisable" + item] && (
+													<View style={styles.container}>
+														<Text style={styles.mainText}>
+															{this.state.savedPosts[item].saveName}:
+														</Text>
+														<Text style={styles.mainText}>
+															{this.state.savedPosts[item].data}
+														</Text>
+														<View style={styles.container2}>
+															<Ionicons name="send-outline" style={styles.icon} onPress={() => this.postSavedPost(item)}></Ionicons>
+															<Ionicons name="create-outline" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: true })}></Ionicons>
+															<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
+														</View>
+													</View>
+												)}
+												{this.state["editSavePostVisable" + item] && (
+													<View style={styles.savePostModalEdit}>
+														<Text style={styles.mainText}>
+															{this.state.savedPosts[item].saveName}:
+														</Text>
+														<View style={styles.container2}>
+															<Ionicons name="create" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: false })}></Ionicons>
+															<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
+														</View>
+														<TextInput
+															style={styles.input}
+															multiline={true}
+															numberOfLines={3}
+															placeholder={this.state.savedPosts[item].data}
+															onChangeText={(data) => this.setState({ savedPostUpdateData: data })}
+														/>
+														<Button onClick={() => this.updateSavedPost(item,)}>update</Button>
+													</View>
+												)}
+											</View>
+										}
+									/>
+								)}
 
 								<Button onClick={() => this.setState({ savedPostsModalVisable: false })}>Close</Button>
 							</View>
@@ -750,9 +846,11 @@ class Profile extends Component {
 							transparent={true}>
 
 							<View style={styles.alertModal}>
-								<Text style={styles.mainText}>ALERT</Text>
-								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
-								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+								<View style={styles.alertModalInside}>
+									<Text style={styles.mainText}>ALERT</Text>
+									<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+									<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+								</View>
 							</View>
 
 						</Modal>
@@ -814,6 +912,10 @@ const styles = StyleSheet.create({
 		height: 200,
 		borderRadius: 200 / 2
 	},
+	icon:
+	{
+		fontSize: "150%"
+	},
 	input:
 	{
 		padding: 10,
@@ -827,12 +929,42 @@ const styles = StyleSheet.create({
 	modalView:
 	{
 		flex: 1,
+		flexDirection: "column",
 		justifyContent: "space-evenly",
-		margin: 20,
-		marginVertical: "80%",
+		alignItems: "center",
+		margin: "5%",
+		marginVertical: 100,
 		backgroundColor: "white",
 		borderRadius: 20,
 		padding: 35,
+		textAlign: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4
+	},
+	savePostModalEdit:
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		backgroundColor: "#e4ecff",
+		borderRadius: 20
+	},
+	alertModal:
+	{
+		flex: 1,
+		justifyContent: "space-evenly",
+		margin: "10%",
+		marginVertical: 100,
+		backgroundColor: "#ffd4d8",
+		borderRadius: 20,
+		padding: 35,
+		paddingTop: 50,
 		alignItems: "center",
 		textAlign: "center",
 		shadowColor: "#000",
@@ -843,24 +975,9 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.25,
 		shadowRadius: 4
 	},
-	alertModal:
+	innerContain:
 	{
-		flex: 1,
-		justifyContent: "space-evenly",
-		margin: 20,
-		marginVertical: "90%",
-		backgroundColor: "#ffd4d8",
-		borderRadius: 20,
-		padding: 35,
-		alignItems: "center",
-		textAlign: "center",
-		shadowColor: "#000",
-		shadowOffset: {
-			width: 0,
-			height: 2
-		},
-		shadowOpacity: 0.25,
-		shadowRadius: 4
+		width: 300
 	}
 });
 

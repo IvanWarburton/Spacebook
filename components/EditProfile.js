@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, TextInput, Modal } from "react-native";
+import { View, Text, StyleSheet, TextInput, Modal, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Camera } from "expo-camera";
 import Button from "react-bootstrap/Button";
@@ -211,7 +211,7 @@ class Profile extends Component {
 		}
 		else {
 			return (
-				<View style={styles.container}>
+				<ScrollView contentContainerStyle={styles.container}>
 
 					<Text style={styles.mainTitle}>
 						Edit My Information
@@ -277,7 +277,7 @@ class Profile extends Component {
 
 						</Modal>
 					</View>
-				</View>
+				</ScrollView>
 			);
 		}
 	}
