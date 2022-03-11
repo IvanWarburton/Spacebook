@@ -62,9 +62,9 @@ class FriendRequests extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					return "Request Accepted";
+					window.location.reload(false);
 				} else if (response.status === 201) {
-					return "Request Accepted";
+					window.location.reload(false);
 				} else if (response.status === 401) {
 					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
@@ -91,9 +91,9 @@ class FriendRequests extends Component {
 		})
 			.then((response) => {
 				if (response.status === 200) {
-					return "Request Accepted";
+					window.location.reload(false);
 				} else if (response.status === 201) {
-					return "Request Accepted";
+					window.location.reload(false);
 				} else if (response.status === 401) {
 					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
