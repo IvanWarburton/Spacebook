@@ -1,2 +1,2 @@
 
-All chnages can be viewed from the Main-Development branch
+All changes can be viewed from the Main-Development branch
