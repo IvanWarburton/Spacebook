@@ -28,16 +28,17 @@ class Friends extends Component {
 		});
 		this.getFriends();
 	}
-	
+
 	getProfilePictures = async () => {
 		for (let i = 0; i < this.state.friendList.length; i++) {
-			
+
 			fetch("http://localhost:3333/api/1.0.0/user/" + this.state.friendList[i].user_id + "/photo",
 				{ headers: { "X-Authorization": this.state.sessionToken } })
 				.then((res) => { return res.blob(); })
 				.then((resBlob) => {
 					let data = URL.createObjectURL(resBlob);
 					this.state.friendList[i].user_pic = data;
+					this.setState({ isLoadingData: false });
 				})
 				.catch((err) => {
 					console.log("error", err);
@@ -55,23 +56,22 @@ class Friends extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: Can only view the friends of yourself or your friends");
+					throw "Error 403: Can only view the friends of yourself or your friends";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
-				this.setState({
-					isLoadingData: false,
-					friendList: responseJson
-				});
-				this.getProfilePictures();
+				this.setState({ friendList: responseJson });
+				if(this.state.friendList.length != 0){this.getProfilePictures();}
+				else{this.setState({ isLoadingData: false });}
+				
 			})
 			.catch((error) => {
 				this.alertMessage(error);
@@ -90,13 +90,13 @@ class Friends extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 400) {
-					this.alertMessage("Error 404: Bad Request");
+					throw "Error 404: Bad Request";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -127,8 +127,7 @@ class Friends extends Component {
 		}
 	};
 
-	async goto(userID)
-	{
+	async goto(userID) {
 		await AsyncStorage.setItem("@viewing_user_id", userID);
 		window.location.reload(false);
 	}
@@ -146,13 +145,13 @@ class Friends extends Component {
 				} else if (response.status === 201) {
 					return "Friend Added";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: User is already added as a friend");
+					throw "Error 403: User is already added as a friend";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -178,6 +177,20 @@ class Friends extends Component {
 						alignItems: "center",
 					}}>
 					<Text>Loading..</Text>
+
+					<View>
+						<Modal visible={this.state.alertModalVisible}
+							animationType="fade"
+							transparent={true}>
+
+							<View style={styles.alertModal}>
+								<Text style={styles.mainText}>ALERT</Text>
+								<Text style={styles.mainText}>{this.state.alertModalMesssage}</Text>
+								<Button onClick={() => this.setState({ alertModalVisible: false })}>Close</Button>
+							</View>
+
+						</Modal>
+					</View>
 				</View>
 			);
 		}
@@ -185,16 +198,13 @@ class Friends extends Component {
 			return (
 				<View style={styles.container}>
 
-					<View style={styles.container2}>
-
-						<Text style={styles.mainTitle}>
-                            SpaceBook Friends
-						</Text>
-					</View>
+					<Text style={styles.mainTitle}>
+						Friends
+					</Text>
 
 					<FlatList
-						data = {this.state.friendList}
-						renderItem={({item}) => 
+						data={this.state.friendList}
+						renderItem={({ item }) =>
 							<TouchableOpacity
 								style={styles.container2}
 								onPress={() => this.goto(item.user_id)}
@@ -218,10 +228,10 @@ class Friends extends Component {
 					/>
 
 					<Button onClick={() => this.searchForFriends()}>Search</Button>
-						
+
 					<FlatList
-						data = {this.state.searchedFriends}
-						renderItem={({item}) => 
+						data={this.state.searchedFriends}
+						renderItem={({ item }) =>
 							<View style={styles.container2}>
 								<Text>
 									{item.user_givenname + " " + item.user_familyname}
@@ -252,15 +262,12 @@ class Friends extends Component {
 			return (
 				<View style={styles.container}>
 
-					<View style={styles.container2}>
-
-						<Text style={styles.mainTitle}>
-                            SpaceBook Friends
-						</Text>
-					</View>
+					<Text style={styles.mainTitle}>
+						Friends
+					</Text>
 
 					<Text style={styles.mainText}>
-                        It doesnt look like you have any friends at this time.
+						It doesnt look like you have any friends at this time.
 					</Text>
 
 					<TextInput
@@ -271,11 +278,11 @@ class Friends extends Component {
 					/>
 
 					<Button onClick={() => this.searchForFriends()}>Search</Button>
-	
+
 					<FlatList
-						data = {this.state.searchedFriends}
-						renderItem={({item}) => 
-							<View>
+						data={this.state.searchedFriends}
+						renderItem={({ item }) =>
+							<View  style={styles.container2}>
 								<Text>
 									{item.user_givenname + " " + item.user_familyname}
 								</Text>
@@ -298,7 +305,7 @@ class Friends extends Component {
 
 						</Modal>
 					</View>
-						
+
 				</View>
 			);
 		}
@@ -307,49 +314,51 @@ class Friends extends Component {
 
 const styles = StyleSheet.create({
 	container:
-    {
-    	flex: 1,
-    	flexDirection: "column",
-    	justifyContent: "space-evenly",
-    	alignItems: "center"
-    },
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center"
+	},
 	container2:
-    {
-    	flexDirection: "row",
-    	justifyContent: "space-evenly",
-    	alignItems: "center",
-    	margin: 20
-    },
+	{
+		flexDirection: "row",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		margin: 10,
+		width: 250
+	},
 	mainTitle:
-    {
-    	fontSize: 40,
-    	fontWeight: "bold",
-    	textAlign: "center"
-    },
+	{
+		fontSize: 40,
+		fontWeight: "bold",
+		textAlign: "center",
+		margin: 40
+	},
 	mainText:
-    {
-    	fontSize: 20,
-    	fontWeight: "bold",
-    	textAlign: "center",
-    	margin: 40
-    },
+	{
+		fontSize: 20,
+		fontWeight: "bold",
+		textAlign: "center",
+		margin: 20
+	},
 	button:
-    {
-    	padding: 10
-    },
+	{
+		padding: 10
+	},
 	input:
-    {	
-    	margin: 40,
-    	padding: 10,
-    	width: "70%"
-    },
+	{
+		margin: 40,
+		padding: 10,
+		width: "70%"
+	},
 	icon:
 	{
 		fontSize: "200%"
 	},
 	friendPics:
 	{
-		margin: 10, 
+		margin: 10,
 		width: 50,
 		height: 50,
 		borderRadius: 50 / 2

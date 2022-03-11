@@ -45,15 +45,15 @@ class Profile extends Component {
 				if (response.status === 200) {
 					window.location.reload(false);
 				} else if (response.status === 400) {
-					this.alertMessage("Error 400: Bad Request");
+					throw "Error 400: Bad Request";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((err) => {
@@ -86,13 +86,13 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -140,17 +140,17 @@ class Profile extends Component {
 					if (response.status === 200) {
 						window.location.reload(false);
 					} else if (response.status === 400) {
-						this.alertMessage("Error 400: Bad Request");
+						throw "Error 400: Bad Request";
 					} else if (response.status === 401) {
-						this.alertMessage("Error 401: Unauthorised");
+						throw "Error 401: Unauthorised";
 					} else if (response.status === 403) {
-						this.alertMessage("Error 403: Forbidden");
+						throw "Error 403: Forbidden";
 					} else if (response.status === 404) {
-						this.alertMessage("Error 404: Not Found");
+						throw "Error 404: Not Found";
 					} else if (response.status === 500) {
-						this.alertMessage("Error 500: Server Error");
+						throw "Error 500: Server Error";
 					} else {
-						this.alertMessage("Error: Something went wrong");
+						throw "Error: Something went wrong";
 					}
 				})
 

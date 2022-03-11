@@ -57,11 +57,11 @@ class SignUp extends Component {
 					if (response.status === 201) {
 						return response.json();
 					} else if (response.status === 400) {
-						this.alertMessage("Error 400: Failed Validation");
+						throw "Error 400: Failed Validation";
 					} else if (response.status === 500) {
-						this.alertMessage("Error 500: Server Error");
+						throw "Error 500: Server Error";
 					} else {
-						this.alertMessage("Error: Something went wrong");
+						throw "Error: Something went wrong";
 					}
 				})
 				.then((responseJson) => {

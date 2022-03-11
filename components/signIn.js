@@ -51,11 +51,11 @@ class SignIn extends Component {
 					if (response.status === 200) {
 						return response.json();
 					} else if (response.status === 400) {
-						this.alertMessage("Error 400: Failed Validation");
+						throw "Error 400: Invalid Email/Password";
 					} else if (response.status === 500) {
-						this.alertMessage("Error 500: Server Error");
+						throw "Error 500: Server Error";
 					} else {
-						this.alertMessage("Error: Something went wrong");
+						throw "Error: Something went wrong";
 					}
 				})
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "space-evenly",
 		margin: 20,
-		marginVertical: "90%",
+		marginVertical: "85%",
 		backgroundColor: "#ffd4d8",
 		borderRadius: 20,
 		padding: 35,

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Image, Modal, TextInput, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, StyleSheet, Image, Modal, TextInput, TouchableOpacity, FlatList, ScrollView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "react-bootstrap/Button";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -105,13 +105,13 @@ class Profile extends Component {
 					await AsyncStorage.removeItem("@user_id");
 					await AsyncStorage.removeItem("@viewing_user_id");
 					window.location.reload(false);
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -139,11 +139,11 @@ class Profile extends Component {
 				if (response.status === 200) {
 					window.location.reload(false);
 				} else if (response.status === 401) {
-					this.alertMessage("Unauthorise");
+					throw "Unauthorise";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -167,9 +167,9 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -198,15 +198,15 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					console.log("Not friends with user");
+					throw "Not friends with user";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -311,7 +311,6 @@ class Profile extends Component {
 						{this.state.isLoadingAPost && (
 							<View style={styles.modalView}>
 								<Text style={styles.mainText}>Loading... </Text>
-								{console.log("code loading before suposed too here")}
 								<Button onClick={() => this.setState({ [modalName]: false })}>Close</Button>
 							</View>
 						)}
@@ -386,15 +385,15 @@ class Profile extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					console.log("Not friends with user");
+					throw "Not friends with user";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -488,13 +487,13 @@ class Profile extends Component {
 				if (response.status === 201) {
 					this.getPosts();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -521,17 +520,17 @@ class Profile extends Component {
 					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 400) {
-					this.alertMessage("Error 404: Bad Request");
+					throw "Error 404: Bad Request";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: Forbidden - you can only update your own posts");
+					throw "Error 403: Forbidden - you can only update your own posts";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -540,8 +539,11 @@ class Profile extends Component {
 	}
 
 	async deletePost(postID) {
-		let user = this.state.loggedInUser;
+		let user = null;
 		this.setState({ isLoadingPosts: true });
+
+		if (this.state.viewingUsersId == null) { user = this.state.loggedInUser; }
+		else { user = this.state.viewingUsersId; }
 
 		return fetch("http://localhost:3333/api/1.0.0/user/" + user + "/post/" + postID, {
 			method: "DELETE",
@@ -552,15 +554,15 @@ class Profile extends Component {
 					this.setState({ ["postModal" + postID + "Visible"]: false });
 					this.getPosts();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: You can only delete your own posts");
+					throw "Error 403: You can only delete your own posts";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -581,21 +583,21 @@ class Profile extends Component {
 					this.getPosts();
 				} else if (response.status === 400) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Bad Request. You may have already liked this post.");
+					throw "Bad Request. You may have already liked this post.";
 				} else if (response.status === 401) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Unauthorised");
+					throw "Unauthorised";
 				} else if (response.status === 403) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("You have already liked the post or you are not friends with this person.");
+					throw "You have already liked the post or you are not friends with this person.";
 				} else if (response.status === 404) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Not found");
+					throw "Not found";
 				} else if (response.status === 500) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Server Error");
+					throw "Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -616,21 +618,21 @@ class Profile extends Component {
 					this.getPosts();
 				} else if (response.status === 400) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Bad Request. You may have already Unliked this post.");
+					throw "Bad Request. You may have already Unliked this post.";
 				} else if (response.status === 401) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Unauthorised");
+					throw "Unauthorised";
 				} else if (response.status === 403) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("You have not liked this post or you are not friends with this person.");
+					throw "You have not liked this post or you are not friends with this person.";
 				} else if (response.status === 404) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Not found");
+					throw "Not found";
 				} else if (response.status === 500) {
 					this.setState({ ["postModal" + postID + "Visible"]: false, isLoadingPosts: false });
-					this.alertMessage("Server Error");
+					throw "Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -661,7 +663,8 @@ class Profile extends Component {
 		}
 		else {
 			return (
-				<View style={styles.container}>
+				<ScrollView contentContainerStyle={styles.container}>
+
 
 					{!this.state.loggedInUserViewing && (
 						<Button onClick={() => window.location.reload(false)}>Back to Your Profile</Button>
@@ -699,7 +702,7 @@ class Profile extends Component {
 								animationType="fade"
 								transparent={true}>
 
-								<View style={styles.modalView}>
+								<View style={styles.largeModalView}>
 
 									{this.state.modalIsLoading && (
 										<View
@@ -717,7 +720,7 @@ class Profile extends Component {
 										<FlatList
 											data={this.state.friendsFriendList}
 											renderItem={({ item }) =>
-												<View>
+												<View style={styles.container}>
 													<Text style={styles.mainText}>
 														{item.user_givenname + " " + item.user_familyname}
 													</Text>
@@ -752,69 +755,69 @@ class Profile extends Component {
 
 					<this.postLists />
 
-					<View style={styles.container}>
-						<Modal visible={this.state.savedPostsModalVisable}
-							animationType="fade"
-							transparent={true}>
 
-							<View style={styles.modalView}>
+					<Modal visible={this.state.savedPostsModalVisable}
+						animationType="fade"
+						transparent={true}>
 
-								<Text style={styles.mainTitle}>Saved Posts</Text>
+						<View style={styles.largeModalView}>
 
-								{!this.state.savedPosts && (
-									<Text style={styles.mainText}>There are no saved Post.</Text>
-								)}
+							<Text style={styles.mainTitle}>Saved Posts</Text>
 
-								{this.state.savedPosts && (
-									<FlatList
-										data={Object.keys(this.state.savedPosts)}
-										renderItem={({ item }) =>
-											<View style={styles.innerContain}>
+							{!this.state.savedPosts && (
+								<Text style={styles.mainText}>There are no saved Post.</Text>
+							)}
 
-												{!this.state["editSavePostVisable" + item] && (
-													<View style={styles.container}>
-														<Text style={styles.mainText}>
-															{this.state.savedPosts[item].saveName}:
-														</Text>
-														<Text style={styles.mainText}>
-															{this.state.savedPosts[item].data}
-														</Text>
-														<View style={styles.container2}>
-															<Ionicons name="send-outline" style={styles.icon} onPress={() => this.postSavedPost(item)}></Ionicons>
-															<Ionicons name="create-outline" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: true })}></Ionicons>
-															<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
-														</View>
+							{this.state.savedPosts && (
+								<FlatList
+									data={Object.keys(this.state.savedPosts)}
+									renderItem={({ item }) =>
+										<View style={styles.innerContain}>
+
+											{!this.state["editSavePostVisable" + item] && (
+												<View style={styles.container}>
+													<Text style={styles.mainText}>
+														{this.state.savedPosts[item].saveName}:
+													</Text>
+													<Text style={styles.mainText}>
+														{this.state.savedPosts[item].data}
+													</Text>
+													<View style={styles.container2}>
+														<Ionicons name="send-outline" style={styles.icon} onPress={() => this.postSavedPost(item)}></Ionicons>
+														<Ionicons name="create-outline" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: true })}></Ionicons>
+														<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
 													</View>
-												)}
-												{this.state["editSavePostVisable" + item] && (
-													<View style={styles.savePostModalEdit}>
-														<Text style={styles.mainText}>
-															{this.state.savedPosts[item].saveName}:
-														</Text>
-														<View style={styles.container2}>
-															<Ionicons name="create" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: false })}></Ionicons>
-															<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
-														</View>
-														<TextInput
-															style={styles.input}
-															multiline={true}
-															numberOfLines={3}
-															placeholder={this.state.savedPosts[item].data}
-															onChangeText={(data) => this.setState({ savedPostUpdateData: data })}
-														/>
-														<Button onClick={() => this.updateSavedPost(item,)}>update</Button>
+												</View>
+											)}
+											{this.state["editSavePostVisable" + item] && (
+												<View style={styles.savePostModalEdit}>
+													<Text style={styles.mainText}>
+														{this.state.savedPosts[item].saveName}:
+													</Text>
+													<View style={styles.container2}>
+														<Ionicons name="create" style={styles.icon} onPress={() => this.setState({ ["editSavePostVisable" + item]: false })}></Ionicons>
+														<Ionicons name="trash" style={styles.icon} onPress={() => this.deleteSavedPost(item)}></Ionicons>
 													</View>
-												)}
-											</View>
-										}
-									/>
-								)}
+													<TextInput
+														style={styles.input}
+														multiline={true}
+														numberOfLines={3}
+														placeholder={this.state.savedPosts[item].data}
+														onChangeText={(data) => this.setState({ savedPostUpdateData: data })}
+													/>
+													<Button onClick={() => this.updateSavedPost(item,)}>update</Button>
+												</View>
+											)}
+										</View>
+									}
+								/>
+							)}
 
-								<Button onClick={() => this.setState({ savedPostsModalVisable: false })}>Close</Button>
-							</View>
+							<Button onClick={() => this.setState({ savedPostsModalVisable: false })}>Close</Button>
+						</View>
 
-						</Modal>
-					</View>
+					</Modal>
+
 
 					<View>
 						<Modal visible={this.state.savePostModalVisable}
@@ -832,15 +835,16 @@ class Profile extends Component {
 									placeholder="Save Post As:"
 									onChangeText={(text) => this.state.post["postName"] = text}
 								/>
-
-								<Button onClick={() => this.savePost()}>Save Post</Button>
-								<Button onClick={() => this.setState({ savePostModalVisable: false })}>Close</Button>
+								<View style={styles.container2}>
+									<Button onClick={() => this.savePost()}>Save Post</Button>
+									<Button onClick={() => this.setState({ savePostModalVisable: false })}>Close</Button>
+								</View>
 							</View>
 
 						</Modal>
 					</View>
 
-					<View>
+					<View style={styles.container}>
 						<Modal visible={this.state.alertModalVisible}
 							animationType="fade"
 							transparent={true}>
@@ -856,7 +860,8 @@ class Profile extends Component {
 						</Modal>
 					</View>
 
-				</View>
+
+				</ScrollView>
 			);
 		}
 	}
@@ -868,7 +873,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: "column",
 		justifyContent: "space-evenly",
-		alignItems: "center"
+		alignItems: "center",
+		margin: 10,
 	},
 	container2:
 	{
@@ -898,12 +904,15 @@ const styles = StyleSheet.create({
 	postContainer:
 	{
 		padding: 10,
+		width: 400,
+		textAlign: "center",
 	},
 	postText:
 	{
 		fontSize: 15,
 		fontWeight: "bold",
-		width: "100%"
+		width: "100%",
+
 	},
 	logo:
 	{
@@ -924,7 +933,8 @@ const styles = StyleSheet.create({
 		width: "70%",
 		borderRadius: 20,
 		textAlign: "center",
-		backgroundColor: "#D1D1D1"
+		backgroundColor: "#D1D1D1",
+		margin: 10
 	},
 	modalView:
 	{
@@ -933,7 +943,27 @@ const styles = StyleSheet.create({
 		justifyContent: "space-evenly",
 		alignItems: "center",
 		margin: "5%",
-		marginVertical: 100,
+		marginVertical: "80%",
+		backgroundColor: "white",
+		borderRadius: 20,
+		padding: 25,
+		textAlign: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4
+	},
+	largeModalView:
+	{
+		flex: 1,
+		flexDirection: "column",
+		justifyContent: "space-evenly",
+		alignItems: "center",
+		margin: "5%",
+		marginVertical: "40%",
 		backgroundColor: "white",
 		borderRadius: 20,
 		padding: 35,
@@ -957,14 +987,12 @@ const styles = StyleSheet.create({
 	},
 	alertModal:
 	{
-		flex: 1,
-		justifyContent: "space-evenly",
-		margin: "10%",
-		marginVertical: 100,
+		margin: 10,
+		marginVertical: "90%",
+		maxWidth: 400,
 		backgroundColor: "#ffd4d8",
 		borderRadius: 20,
-		padding: 35,
-		paddingTop: 50,
+		padding: 25,
 		alignItems: "center",
 		textAlign: "center",
 		shadowColor: "#000",

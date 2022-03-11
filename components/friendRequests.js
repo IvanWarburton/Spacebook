@@ -33,11 +33,11 @@ class FriendRequests extends Component {
 				if (response.status === 200) {
 					return response.json();
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 500) {
-					this.alertMessage("Error 500: Server Error");
+					throw "Error 500: Server Error";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.then((responseJson) => {
@@ -66,13 +66,13 @@ class FriendRequests extends Component {
 				} else if (response.status === 201) {
 					return "Request Accepted";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: User is already added as a friend");
+					throw "Error 403: User is already added as a friend";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -95,13 +95,13 @@ class FriendRequests extends Component {
 				} else if (response.status === 201) {
 					return "Request Accepted";
 				} else if (response.status === 401) {
-					this.alertMessage("Error 401: Unauthorised");
+					throw "Error 401: Unauthorised";
 				} else if (response.status === 403) {
-					this.alertMessage("Error 403: User is already added as a friend");
+					throw "Error 403: User is already added as a friend";
 				} else if (response.status === 404) {
-					this.alertMessage("Error 404: Not Found");
+					throw "Error 404: Not Found";
 				} else {
-					this.alertMessage("Error: Something went wrong");
+					throw "Error: Something went wrong";
 				}
 			})
 			.catch((error) => {
@@ -135,7 +135,7 @@ class FriendRequests extends Component {
 				<View style={styles.container}>
 
 					<Text style={styles.mainTitle}>
-						SpaceBook Friend Requests
+						Friend Requests
 					</Text>
 
 
@@ -176,12 +176,9 @@ class FriendRequests extends Component {
 			return (
 				<View style={styles.container}>
 
-					<View style={styles.container2}>
-
-						<Text style={styles.mainTitle}>
-							SpaceBook Friends  Requests
-						</Text>
-					</View>
+					<Text style={styles.mainTitle}>
+						Friends Requests
+					</Text>
 
 
 					<Text style={styles.mainText}>
@@ -223,20 +220,22 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-evenly",
 		alignItems: "center",
-		width: "100%",
+		width: 250,
 		margin: 10,
 	},
 	mainTitle:
 	{
 		fontSize: 40,
 		fontWeight: "bold",
-		textAlign: "center"
+		textAlign: "center",
+		margin: 40
 	},
 	mainText:
 	{
 		flex: 1,
 		fontSize: 15,
-		fontWeight: "bold"
+		fontWeight: "bold",
+		margin: 40
 	},
 	button:
 	{
@@ -250,7 +249,8 @@ const styles = StyleSheet.create({
 	},
 	icon:
 	{
-		fontSize: "200%"
+		fontSize: "200%",
+		margin: 10
 	},
 	alertModal:
 	{
